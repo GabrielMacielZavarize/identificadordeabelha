@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import json
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -34,14 +34,16 @@ class ArtifactLoader:
         training_config_path = artifact_dir / "training_config.yaml"
         metrics_path = artifact_dir / "metrics.json"
 
-        for required_path in (classifier_path, label_map_path, training_config_path, metrics_path):
+        for required_path in (classifier_path, label_map_path, training_config_path):
             if not required_path.exists():
                 raise ModelNotReadyError(f"Missing artifact file: {required_path.name}")
 
         label_map_raw = json.loads(label_map_path.read_text(encoding="utf-8"))
         label_map = {int(key): value for key, value in label_map_raw.items()}
         training_config = yaml.safe_load(training_config_path.read_text(encoding="utf-8")) or {}
-        metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
+        metrics = (
+            json.loads(metrics_path.read_text(encoding="utf-8")) if metrics_path.exists() else {}
+        )
 
         classifier = load_classifier_state(
             classifier_path,

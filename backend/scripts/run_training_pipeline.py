@@ -24,10 +24,11 @@ def run_pipeline(
     embeddings_dir: Path,
     artifacts_root: Path,
     version: str,
+    encoder_name: str,
 ) -> Path:
     build_clean_manifest(raw_catalog, clean_catalog)
     split_dataset(clean_catalog, split_manifest, processed_root)
-    embedding_files = extract_embeddings(split_manifest, embeddings_dir)
+    embedding_files = extract_embeddings(split_manifest, embeddings_dir, model_name=encoder_name)
 
     run_dir = artifacts_root / "_runs" / version
     training_artifacts = train_classifier(
@@ -35,6 +36,7 @@ def run_pipeline(
         val_embeddings_path=embedding_files["val"],
         output_dir=run_dir,
         version=version,
+        encoder_name=encoder_name,
     )
     metrics = evaluate_classifier(training_artifacts.output_dir, embedding_files["test"])
     packaged_dir = package_model(run_dir, artifacts_root / version)
@@ -46,7 +48,7 @@ def run_pipeline(
         ModelRepository().register_model_version(
             db,
             version=version,
-            encoder_name="facebook/dinov2-base",
+            encoder_name=encoder_name,
             classifier_type="mlp",
             artifact_dir=packaged_dir,
             metrics=metrics,
@@ -65,7 +67,8 @@ def main() -> None:
     parser.add_argument("--processed-root", type=Path, default=Path("../data/processed"))
     parser.add_argument("--embeddings-dir", type=Path, default=Path("../data/interim/embeddings"))
     parser.add_argument("--artifacts-root", type=Path, default=Path("../artifacts/models"))
-    parser.add_argument("--version", type=str, default="dinov2_base_mlp_v001")
+    parser.add_argument("--version", type=str, default="dinov2_small_mlp_demo_v001")
+    parser.add_argument("--encoder-name", type=str, default="facebook/dinov2-small")
     args = parser.parse_args()
 
     packaged_dir = run_pipeline(
@@ -76,6 +79,7 @@ def main() -> None:
         embeddings_dir=args.embeddings_dir.resolve(),
         artifacts_root=args.artifacts_root.resolve(),
         version=args.version,
+        encoder_name=args.encoder_name,
     )
     print(json.dumps({"packaged_dir": str(packaged_dir)}, indent=2))
 

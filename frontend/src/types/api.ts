@@ -44,3 +44,22 @@ export type PredictionResponse = {
   created_at: string
   inference_ms: number
 }
+
+export type GlobalIdentificationProbability = {
+  code: string
+  scientific_name: string
+  common_name: string
+  probability: number
+}
+
+export type GlobalIdentificationResponse = {
+  image_url: string
+  predicted_code: string
+  predicted_scientific_name: string
+  predicted_common_name: string
+  confidence: number
+  probabilities: GlobalIdentificationProbability[]
+  model_name: string
+  created_at: string
+  note: string
+}

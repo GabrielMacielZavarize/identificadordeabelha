@@ -6,10 +6,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from augochloropsis_ai.api.routes import (
+    global_identifications,
+    health,
+    models,
+    predictions,
+    species,
+)
 from augochloropsis_ai.core.config import get_settings
 from augochloropsis_ai.core.logging import configure_logging
 from augochloropsis_ai.db.session import init_db
-from augochloropsis_ai.api.routes import health, models, predictions, species
 
 
 @asynccontextmanager
@@ -45,6 +51,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router, prefix=settings.api_v1_prefix)
     app.include_router(species.router, prefix=settings.api_v1_prefix)
     app.include_router(predictions.router, prefix=settings.api_v1_prefix)
+    app.include_router(global_identifications.router, prefix=settings.api_v1_prefix)
     app.include_router(models.router, prefix=settings.api_v1_prefix)
     return app
 

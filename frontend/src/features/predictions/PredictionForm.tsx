@@ -4,21 +4,22 @@ import { useForm } from 'react-hook-form'
 import axios from 'axios'
 
 import { api } from '../../lib/http'
-import type { PredictionResponse } from '../../types/api'
+import type { GlobalIdentificationResponse, PredictionResponse } from '../../types/api'
 
 type UploadFormValues = {
   file: FileList
 }
 
 type PredictionFormProps = {
-  onSuccess: (prediction: PredictionResponse) => void
+  onGlobalSuccess: (identification: GlobalIdentificationResponse) => void
+  onSpecificSuccess: (prediction: PredictionResponse) => void
 }
 
-export function PredictionForm({ onSuccess }: PredictionFormProps) {
+export function PredictionForm({ onGlobalSuccess, onSpecificSuccess }: PredictionFormProps) {
   const [selectedName, setSelectedName] = useState<string>('Nenhum arquivo selecionado')
-  const { handleSubmit, register, reset } = useForm<UploadFormValues>()
+  const { handleSubmit, register } = useForm<UploadFormValues>()
 
-  const mutation = useMutation({
+  const specificMutation = useMutation({
     mutationFn: async (file: File) => {
       const payload = new FormData()
       payload.append('file', file)
@@ -28,35 +29,64 @@ export function PredictionForm({ onSuccess }: PredictionFormProps) {
       return response.data
     },
     onSuccess: (data) => {
-      onSuccess(data)
-      reset()
-      setSelectedName('Nenhum arquivo selecionado')
+      onSpecificSuccess(data)
     },
   })
 
-  const submitForm = handleSubmit((values) => {
+  const globalMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const payload = new FormData()
+      payload.append('file', file)
+      const response = await api.post<GlobalIdentificationResponse>('/global-identifications', payload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      return response.data
+    },
+    onSuccess: (data) => {
+      onGlobalSuccess(data)
+    },
+  })
+
+  const submitSpecific = handleSubmit((values) => {
     const file = values.file?.[0]
     if (!file) {
       return
     }
-    mutation.mutate(file)
+    specificMutation.mutate(file)
   })
 
-  const errorMessage = axios.isAxiosError(mutation.error)
-    ? (mutation.error.response?.data as { detail?: string } | undefined)?.detail ??
-      mutation.error.message
-    : mutation.error instanceof Error
-      ? mutation.error.message
+  const submitGlobal = handleSubmit((values) => {
+    const file = values.file?.[0]
+    if (!file) {
+      return
+    }
+    globalMutation.mutate(file)
+  })
+
+  const specificErrorMessage = axios.isAxiosError(specificMutation.error)
+    ? (specificMutation.error.response?.data as { detail?: string } | undefined)?.detail ??
+      specificMutation.error.message
+    : specificMutation.error instanceof Error
+      ? specificMutation.error.message
       : null
+
+  const globalErrorMessage = axios.isAxiosError(globalMutation.error)
+    ? (globalMutation.error.response?.data as { detail?: string } | undefined)?.detail ??
+      globalMutation.error.message
+    : globalMutation.error instanceof Error
+      ? globalMutation.error.message
+      : null
+
+  const isPending = specificMutation.isPending || globalMutation.isPending
 
   return (
     <section className="panel">
       <div className="panel-header">
-        <h2>Nova classificação</h2>
-        <p>Envie uma imagem JPG ou PNG para inferência do modelo ativo.</p>
+        <h2>Nova análise</h2>
+        <p>Envie uma imagem JPG ou PNG e escolha qual modelo deve avaliar a foto.</p>
       </div>
 
-      <form className="stack-md" onSubmit={submitForm}>
+      <form className="stack-md">
         <label className="file-input upload-dropzone" htmlFor="bee-image">
           <span className="field-label">Imagem da abelha</span>
           <span className="upload-title">Selecione uma foto para classificar</span>
@@ -76,12 +106,16 @@ export function PredictionForm({ onSuccess }: PredictionFormProps) {
         </label>
 
         <div className="form-footer">
-          <button className="primary-button" type="submit" disabled={mutation.isPending}>
-            {mutation.isPending ? 'Classificando...' : 'Executar classificação'}
+          <button className="primary-button" type="button" disabled={isPending} onClick={submitSpecific}>
+            {specificMutation.isPending ? 'Classificando...' : 'Executar classificação específica'}
+          </button>
+          <button className="secondary-button" type="button" disabled={isPending} onClick={submitGlobal}>
+            {globalMutation.isPending ? 'Consultando...' : 'Usar identificador global'}
           </button>
         </div>
 
-        {errorMessage ? <p className="feedback error">{errorMessage}</p> : null}
+        {specificErrorMessage ? <p className="feedback error">{specificErrorMessage}</p> : null}
+        {globalErrorMessage ? <p className="feedback error">{globalErrorMessage}</p> : null}
       </form>
     </section>
   )

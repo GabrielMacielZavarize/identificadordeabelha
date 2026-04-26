@@ -167,12 +167,14 @@ def main() -> None:
     parser.add_argument("--val-embeddings", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--version", type=str, default="dinov2_base_mlp_v001")
+    parser.add_argument("--encoder-name", type=str, default="facebook/dinov2-base")
     args = parser.parse_args()
     train_classifier(
         train_embeddings_path=args.train_embeddings,
         val_embeddings_path=args.val_embeddings,
         output_dir=args.output_dir,
         version=args.version,
+        encoder_name=args.encoder_name,
     )
 
 

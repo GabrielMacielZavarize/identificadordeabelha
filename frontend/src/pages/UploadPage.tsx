@@ -2,13 +2,17 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 
+import { GlobalIdentificationResult } from '../features/predictions/GlobalIdentificationResult'
 import { PredictionForm } from '../features/predictions/PredictionForm'
 import { PredictionResult } from '../features/predictions/PredictionResult'
 import { api } from '../lib/http'
-import type { ModelVersion, PredictionResponse } from '../types/api'
+import type { GlobalIdentificationResponse, ModelVersion, PredictionResponse } from '../types/api'
 
 export function UploadPage() {
   const [prediction, setPrediction] = useState<PredictionResponse | null>(null)
+  const [globalIdentification, setGlobalIdentification] = useState<GlobalIdentificationResponse | null>(
+    null,
+  )
 
   const activeModelQuery = useQuery({
     queryKey: ['active-model'],
@@ -34,9 +38,9 @@ export function UploadPage() {
             tela preparada para análise rápida.
           </p>
           <div className="hero-tags" aria-label="Recursos disponíveis">
-            <span>JPG e PNG</span>
-            <span>Histórico salvo</span>
-            <span>Espécies editáveis</span>
+            <span>Modelo global separado</span>
+            <span>Modelo específico próprio</span>
+            <span>Histórico do modelo específico</span>
           </div>
         </div>
         <aside className="model-box" aria-label="Status do modelo ativo">
@@ -60,8 +64,14 @@ export function UploadPage() {
       </section>
 
       <div className="two-column-grid">
-        <PredictionForm onSuccess={setPrediction} />
-        <PredictionResult prediction={prediction} />
+        <PredictionForm
+          onGlobalSuccess={setGlobalIdentification}
+          onSpecificSuccess={setPrediction}
+        />
+        <div className="stack-md">
+          <PredictionResult prediction={prediction} />
+          <GlobalIdentificationResult identification={globalIdentification} />
+        </div>
       </div>
     </div>
   )
