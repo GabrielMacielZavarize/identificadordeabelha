@@ -1,0 +1,33 @@
+Metadata-Version: 2.4
+Name: augochloropsis-ai
+Version: 0.1.0
+Summary: Academic computer vision system for Augochloropsis bee species classification.
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: alembic<2.0,>=1.13
+Requires-Dist: fastapi<1.0,>=0.115
+Requires-Dist: matplotlib<4.0,>=3.9
+Requires-Dist: numpy<3.0,>=1.26
+Requires-Dist: pandas<3.0,>=2.2
+Requires-Dist: pillow<12,>=10
+Requires-Dist: pydantic-settings<3.0,>=2.4
+Requires-Dist: PyYAML<7.0,>=6.0
+Requires-Dist: python-multipart<1.0,>=0.0.9
+Requires-Dist: safetensors<1.0,>=0.4
+Requires-Dist: scikit-learn<2.0,>=1.5
+Requires-Dist: seaborn<1.0,>=0.13
+Requires-Dist: sqlalchemy<3.0,>=2.0
+Requires-Dist: torch<3.0,>=2.4
+Requires-Dist: torchvision<1.0,>=0.19
+Requires-Dist: transformers<5.0,>=4.46
+Requires-Dist: uvicorn[standard]<1.0,>=0.30
+Provides-Extra: dev
+Requires-Dist: httpx<1.0,>=0.27; extra == "dev"
+Requires-Dist: mypy<2.0,>=1.11; extra == "dev"
+Requires-Dist: pytest<9.0,>=8.3; extra == "dev"
+Requires-Dist: pytest-asyncio<1.0,>=0.23; extra == "dev"
+Requires-Dist: ruff<1.0,>=0.6; extra == "dev"
+
+# Backend
+
+API FastAPI, persistência SQLite e pipeline offline para extração de embeddings, treino do MLP e empacotamento de artefatos.
