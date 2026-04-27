@@ -39,6 +39,9 @@ backend/.env.*
 !.env.example
 !backend/.env.example
 
+# Documentacao local do mantenedor
+docs/guia-mantenedor.local.md
+
 # Sistema operacional
 .DS_Store
 Thumbs.db
