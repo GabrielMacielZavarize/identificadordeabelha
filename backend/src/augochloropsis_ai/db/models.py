@@ -64,6 +64,7 @@ class Prediction(Base):
     probabilities_json: Mapped[str] = mapped_column(Text, nullable=False)
     model_version_id: Mapped[int] = mapped_column(ForeignKey("model_versions.id"), nullable=False)
     inference_ms: Mapped[float] = mapped_column(Float, nullable=False)
+    user_feedback: Mapped[bool | None] = mapped_column(Boolean, nullable=True, default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, nullable=False)
 
     predicted_species: Mapped[Species] = relationship(back_populates="predictions")
@@ -89,4 +90,5 @@ class GlobalIdentification(Base):
     model_name: Mapped[str] = mapped_column(String(255), nullable=False)
     inference_ms: Mapped[float] = mapped_column(Float, nullable=False)
     note: Mapped[str] = mapped_column(Text, nullable=False)
+    user_feedback: Mapped[bool | None] = mapped_column(Boolean, nullable=True, default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, nullable=False)

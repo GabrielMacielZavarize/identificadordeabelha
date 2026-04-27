@@ -1,5 +1,11 @@
 import type { IdentificationHistoryItem } from '../../types/api'
 
+function confidenceClass(value: number): string {
+  if (value >= 0.8) return 'confidence-high'
+  if (value >= 0.5) return 'confidence-mid'
+  return 'confidence-low'
+}
+
 type HistoryTableProps = {
   items: IdentificationHistoryItem[]
 }
@@ -43,7 +49,11 @@ export function HistoryTable({ items }: HistoryTableProps) {
                     : item.predicted_code}
                 </div>
               </td>
-              <td data-label="Confiança">{(item.confidence * 100).toFixed(2)}%</td>
+              <td data-label="Confiança">
+                <strong className={confidenceClass(item.confidence)}>
+                  {(item.confidence * 100).toFixed(2)}%
+                </strong>
+              </td>
               <td data-label="Modelo">{item.model_name}</td>
               <td data-label="Tempo">
                 {item.inference_ms === null ? 'Não informado' : `${item.inference_ms.toFixed(1)} ms`}

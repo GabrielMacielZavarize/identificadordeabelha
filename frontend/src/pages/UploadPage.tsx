@@ -56,8 +56,8 @@ export function UploadPage() {
       <div className="two-column-grid">
         <PredictionForm />
         <div className="stack-md">
-          <PredictionResult prediction={prediction} />
-          <GlobalIdentificationResult identification={globalIdentification} />
+          <PredictionResult key={prediction?.prediction_id ?? 'empty'} prediction={prediction} />
+          <GlobalIdentificationResult key={globalIdentification?.global_identification_id ?? 'empty-global'} identification={globalIdentification} />
         </div>
       </div>
     </div>

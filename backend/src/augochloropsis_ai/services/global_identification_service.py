@@ -12,7 +12,9 @@ from augochloropsis_ai.ml.global_identifier import ClipGlobalIdentifier, get_glo
 from augochloropsis_ai.repositories.global_identification_repository import (
     GlobalIdentificationRepository,
 )
+from augochloropsis_ai.core.exceptions import NotFoundError
 from augochloropsis_ai.schemas.global_identification import (
+    GlobalIdentificationFeedbackUpdate,
     GlobalIdentificationProbability,
     GlobalIdentificationResponse,
 )
@@ -86,6 +88,14 @@ class GlobalIdentificationService:
         )
         return [self._build_response(identification) for identification in identifications]
 
+    def set_feedback(self, db: Session, identification_id: int, body: GlobalIdentificationFeedbackUpdate) -> GlobalIdentificationResponse:
+        identification = self.repository.update_feedback(db, identification_id, body.user_feedback)
+        if identification is None:
+            raise NotFoundError("Global identification not found.")
+        db.commit()
+        db.refresh(identification)
+        return self._build_response(identification)
+
     def _build_response(
         self,
         identification: GlobalIdentification,
@@ -112,4 +122,5 @@ class GlobalIdentificationService:
             created_at=identification.created_at,
             inference_ms=identification.inference_ms,
             note=identification.note,
+            user_feedback=identification.user_feedback,
         )

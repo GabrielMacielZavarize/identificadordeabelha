@@ -28,6 +28,14 @@ class PredictionRepository:
         )
         return db.scalar(stmt)
 
+    def update_feedback(self, db: Session, prediction_id: int, user_feedback: bool) -> Prediction | None:
+        prediction = self.get_prediction(db, prediction_id)
+        if prediction is None:
+            return None
+        prediction.user_feedback = user_feedback
+        db.flush()
+        return prediction
+
     def create_prediction(
         self,
         db: Session,

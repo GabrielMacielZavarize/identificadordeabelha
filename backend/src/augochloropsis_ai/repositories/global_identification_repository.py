@@ -25,6 +25,15 @@ class GlobalIdentificationRepository:
     def count_global_identifications(self, db: Session) -> int:
         return db.scalar(select(func.count()).select_from(GlobalIdentification)) or 0
 
+    def update_feedback(self, db: Session, identification_id: int, user_feedback: bool) -> GlobalIdentification | None:
+        stmt = select(GlobalIdentification).where(GlobalIdentification.id == identification_id)
+        identification = db.scalar(stmt)
+        if identification is None:
+            return None
+        identification.user_feedback = user_feedback
+        db.flush()
+        return identification
+
     def create_global_identification(
         self,
         db: Session,

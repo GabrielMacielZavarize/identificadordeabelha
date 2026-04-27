@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from augochloropsis_ai.core.exceptions import InvalidRequestError, ModelNotReadyError, NotFoundError
 from augochloropsis_ai.db.session import get_db
-from augochloropsis_ai.schemas.prediction import PredictionResponse
+from augochloropsis_ai.schemas.prediction import PredictionFeedbackUpdate, PredictionResponse
 from augochloropsis_ai.services.prediction_service import PredictionService
 
 router = APIRouter(prefix="/predictions", tags=["predictions"])
@@ -37,5 +37,18 @@ def get_prediction(prediction_id: int, db: Session = Depends(get_db)):
     service = PredictionService()
     try:
         return service.get_prediction(db, prediction_id)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.patch("/{prediction_id}/feedback", response_model=PredictionResponse)
+def set_prediction_feedback(
+    prediction_id: int,
+    body: PredictionFeedbackUpdate,
+    db: Session = Depends(get_db),
+):
+    service = PredictionService()
+    try:
+        return service.set_feedback(db, prediction_id, body)
     except NotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc

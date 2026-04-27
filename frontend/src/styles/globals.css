@@ -1,4 +1,5 @@
 :root {
+  font-size: 16px;
   --background: #f4f1e7;
   --background-end: #edf4ee;
   --surface: #fffdf7;
@@ -522,6 +523,136 @@ select:disabled {
   }
 }
 
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.panel-fade-in {
+  animation: fade-in 320ms ease forwards;
+}
+
+.confidence-high {
+  color: var(--green);
+}
+
+.confidence-mid {
+  color: var(--amber);
+}
+
+.confidence-low {
+  color: var(--danger);
+}
+
+.details-technical {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.details-technical summary {
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--surface-muted);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  user-select: none;
+}
+
+.details-technical summary::before {
+  content: "▶";
+  font-size: 0.65rem;
+  transition: transform 200ms ease;
+  display: inline-block;
+}
+
+.details-technical[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.details-technical .metadata-grid {
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+}
+
+.feedback-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.feedback-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.feedback-btn {
+  min-height: 36px;
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface-muted);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.feedback-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.feedback-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.feedback-btn-correct.feedback-active {
+  background: var(--green-soft);
+  color: var(--green-dark);
+  border-color: var(--green);
+}
+
+.feedback-btn-wrong.feedback-active {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.image-preview-wrap {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #ffffff;
+}
+
+.image-preview-wrap img {
+  width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  display: block;
+}
+
 .result-highlight {
   display: grid;
   gap: 0.4rem;
@@ -625,8 +756,11 @@ h4 {
 
 .history-toolbar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 0.75rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
 .history-toolbar label {

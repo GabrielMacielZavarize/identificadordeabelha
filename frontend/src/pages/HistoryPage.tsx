@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
 
@@ -24,6 +24,7 @@ function normalizePage(value: string | null) {
 
 export function HistoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const [isExporting, setIsExporting] = useState(false)
   const source = normalizeFilter(searchParams.get('source'))
   const page = normalizePage(searchParams.get('page'))
   const offset = (page - 1) * PAGE_SIZE
@@ -82,6 +83,48 @@ export function HistoryPage() {
     })
   }
 
+  const handleExportCsv = async () => {
+    setIsExporting(true)
+    try {
+      const response = await api.get<IdentificationHistoryPage>('/history', {
+        params: { source, limit: 1000, offset: 0 },
+      })
+      const items = response.data.items
+      const headers = [
+        'Data',
+        'Origem',
+        'Espécie',
+        'Código',
+        'Nome comum',
+        'Confiança (%)',
+        'Modelo',
+        'Tempo (ms)',
+      ]
+      const rows = items.map((item) => [
+        new Date(item.created_at).toLocaleString('pt-BR'),
+        item.source_label,
+        item.predicted_scientific_name,
+        item.predicted_code,
+        item.predicted_common_name ?? '',
+        (item.confidence * 100).toFixed(2),
+        item.model_name,
+        item.inference_ms?.toFixed(1) ?? '',
+      ])
+      const csv = [headers, ...rows]
+        .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        .join('\n')
+      const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `historico-abelhas-${new Date().toISOString().slice(0, 10)}.csv`
+      anchor.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <section className="panel">
       <div className="panel-header">
@@ -104,6 +147,17 @@ export function HistoryPage() {
             ))}
           </select>
         </label>
+        {total > 0 ? (
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={isExporting}
+            onClick={handleExportCsv}
+            style={{ alignSelf: 'flex-end' }}
+          >
+            {isExporting ? 'Exportando...' : 'Baixar histórico (.csv)'}
+          </button>
+        ) : null}
       </div>
 
       {historyQuery.isLoading ? <p>Carregando histórico...</p> : null}

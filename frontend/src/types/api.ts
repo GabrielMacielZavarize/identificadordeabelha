@@ -43,6 +43,7 @@ export type PredictionResponse = {
   }
   created_at: string
   inference_ms: number
+  user_feedback: boolean | null
 }
 
 export type GlobalIdentificationProbability = {
@@ -64,6 +65,7 @@ export type GlobalIdentificationResponse = {
   created_at: string
   inference_ms: number
   note: string
+  user_feedback: boolean | null
 }
 
 export type HistorySource = 'specific' | 'openai'

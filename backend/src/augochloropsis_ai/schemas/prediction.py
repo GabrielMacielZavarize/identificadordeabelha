@@ -24,6 +24,10 @@ class PredictionProbability(BaseModel):
     probability: float
 
 
+class PredictionFeedbackUpdate(BaseModel):
+    user_feedback: bool
+
+
 class PredictionResponse(BaseModel):
     prediction_id: int
     image_url: str
@@ -33,3 +37,4 @@ class PredictionResponse(BaseModel):
     model_version: ModelVersionSummary
     created_at: datetime
     inference_ms: float
+    user_feedback: bool | None = None

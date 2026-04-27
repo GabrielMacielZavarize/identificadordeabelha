@@ -12,6 +12,10 @@ class GlobalIdentificationProbability(BaseModel):
     probability: float
 
 
+class GlobalIdentificationFeedbackUpdate(BaseModel):
+    user_feedback: bool
+
+
 class GlobalIdentificationResponse(BaseModel):
     global_identification_id: int
     image_url: str
@@ -24,3 +28,4 @@ class GlobalIdentificationResponse(BaseModel):
     created_at: datetime
     inference_ms: float
     note: str
+    user_feedback: bool | None = None

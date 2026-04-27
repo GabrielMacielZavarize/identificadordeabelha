@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 
 import {
   CLASSIFICATION_MODEL_OPTIONS,
@@ -45,11 +45,13 @@ function getRandomThinkingMessageIndex(currentIndex?: number) {
 export function PredictionForm() {
   const [selectedName, setSelectedName] = useState<string>('Nenhum arquivo selecionado')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [selectedModel, setSelectedModel] = useState<ClassificationModelId>('specific')
   const [thinkingMessageIndex, setThinkingMessageIndex] = useState(() =>
     getRandomThinkingMessageIndex(),
   )
   const { errorMessage, isPending, pendingModel, runAnalysis } = usePredictionWorkflow()
+  const previewUrlRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (!isPending) {
@@ -62,6 +64,30 @@ export function PredictionForm() {
 
     return () => window.clearInterval(interval)
   }, [isPending])
+
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current)
+      }
+    }
+  }, [])
+
+  const handleFileChange = (file: File | null) => {
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current)
+      previewUrlRef.current = null
+    }
+    setSelectedFile(file)
+    setSelectedName(file?.name ?? 'Nenhum arquivo selecionado')
+    if (file) {
+      const url = URL.createObjectURL(file)
+      previewUrlRef.current = url
+      setPreviewUrl(url)
+    } else {
+      setPreviewUrl(null)
+    }
+  }
 
   const submitSearch = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -89,13 +115,15 @@ export function PredictionForm() {
             id="bee-image"
             type="file"
             accept=".jpg,.jpeg,.png,image/png,image/jpeg"
-            onChange={(event) => {
-              const file = event.currentTarget.files?.[0] ?? null
-              setSelectedFile(file)
-              setSelectedName(file?.name ?? 'Nenhum arquivo selecionado')
-            }}
+            onChange={(event) => handleFileChange(event.currentTarget.files?.[0] ?? null)}
           />
         </label>
+
+        {previewUrl ? (
+          <div className="image-preview-wrap">
+            <img src={previewUrl} alt="Pré-visualização da imagem selecionada" />
+          </div>
+        ) : null}
 
         <div className="model-search-row">
           <label htmlFor="classification-model">

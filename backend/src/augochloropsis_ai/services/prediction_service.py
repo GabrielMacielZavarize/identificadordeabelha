@@ -14,6 +14,7 @@ from augochloropsis_ai.repositories.prediction_repository import PredictionRepos
 from augochloropsis_ai.repositories.species_repository import SpeciesRepository
 from augochloropsis_ai.schemas.prediction import (
     ModelVersionSummary,
+    PredictionFeedbackUpdate,
     PredictionProbability,
     PredictionResponse,
     SpeciesSummary,
@@ -84,6 +85,14 @@ class PredictionService:
             raise NotFoundError("Prediction not found.")
         return self._build_response(prediction)
 
+    def set_feedback(self, db: Session, prediction_id: int, body: PredictionFeedbackUpdate) -> PredictionResponse:
+        prediction = self.prediction_repository.update_feedback(db, prediction_id, body.user_feedback)
+        if prediction is None:
+            raise NotFoundError("Prediction not found.")
+        db.commit()
+        db.refresh(prediction)
+        return self._build_response(prediction)
+
     def _serialize_probabilities(
         self,
         probabilities: list[InferenceProbability],
@@ -125,4 +134,5 @@ class PredictionService:
             ),
             created_at=prediction.created_at,
             inference_ms=prediction.inference_ms,
+            user_feedback=prediction.user_feedback,
         )

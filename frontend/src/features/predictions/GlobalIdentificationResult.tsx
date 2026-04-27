@@ -1,10 +1,22 @@
+import { useState } from 'react'
+
+import { api } from '../../lib/http'
 import type { GlobalIdentificationResponse } from '../../types/api'
+
+function confidenceClass(value: number): string {
+  if (value >= 0.8) return 'confidence-high'
+  if (value >= 0.5) return 'confidence-mid'
+  return 'confidence-low'
+}
 
 type GlobalIdentificationResultProps = {
   identification: GlobalIdentificationResponse | null
 }
 
 export function GlobalIdentificationResult({ identification }: GlobalIdentificationResultProps) {
+  const [feedback, setFeedback] = useState<boolean | null>(identification?.user_feedback ?? null)
+  const [isSendingFeedback, setIsSendingFeedback] = useState(false)
+
   if (!identification) {
     return (
       <section className="panel">
@@ -20,8 +32,24 @@ export function GlobalIdentificationResult({ identification }: GlobalIdentificat
     )
   }
 
+  const sendFeedback = async (value: boolean) => {
+    if (isSendingFeedback) return
+    setIsSendingFeedback(true)
+    try {
+      await api.patch(
+        `/global-identifications/${identification.global_identification_id}/feedback`,
+        { user_feedback: value },
+      )
+      setFeedback(value)
+    } catch {
+      // silently fail — feedback is best-effort
+    } finally {
+      setIsSendingFeedback(false)
+    }
+  }
+
   return (
-    <section className="panel">
+    <section className="panel panel-fade-in">
       <div className="panel-header">
         <h2>Identificador global</h2>
         <p>Baseline separado para comparação com o modelo específico do projeto.</p>
@@ -31,7 +59,7 @@ export function GlobalIdentificationResult({ identification }: GlobalIdentificat
         <p className="eyebrow">Melhor sugestão global</p>
         <h3>{identification.predicted_scientific_name}</h3>
         <p>{identification.predicted_common_name}</p>
-        <p className="confidence">
+        <p className={`confidence ${confidenceClass(identification.confidence)}`}>
           Confiança: <strong>{(identification.confidence * 100).toFixed(2)}%</strong>
         </p>
         <div className="confidence-meter" aria-hidden="true">
@@ -46,20 +74,43 @@ export function GlobalIdentificationResult({ identification }: GlobalIdentificat
           alt={`Imagem avaliada pelo identificador global como ${identification.predicted_scientific_name}`}
         />
 
-        <dl className="metadata-grid">
-          <div>
-            <dt>Modelo</dt>
-            <dd>{identification.model_name}</dd>
-          </div>
-          <div>
-            <dt>Inferência</dt>
-            <dd>{identification.inference_ms.toFixed(1)} ms</dd>
-          </div>
-          <div>
-            <dt>Executado em</dt>
-            <dd>{new Date(identification.created_at).toLocaleString('pt-BR')}</dd>
-          </div>
-        </dl>
+        <div className="feedback-row">
+          <span className="feedback-label">Isso está correto?</span>
+          <button
+            type="button"
+            className={`feedback-btn feedback-btn-correct${feedback === true ? ' feedback-active' : ''}`}
+            disabled={isSendingFeedback}
+            onClick={() => sendFeedback(true)}
+          >
+            ✓ Correto
+          </button>
+          <button
+            type="button"
+            className={`feedback-btn feedback-btn-wrong${feedback === false ? ' feedback-active' : ''}`}
+            disabled={isSendingFeedback}
+            onClick={() => sendFeedback(false)}
+          >
+            ✗ Incorreto
+          </button>
+        </div>
+
+        <details className="details-technical">
+          <summary>Detalhes técnicos</summary>
+          <dl className="metadata-grid">
+            <div>
+              <dt>Modelo</dt>
+              <dd>{identification.model_name}</dd>
+            </div>
+            <div>
+              <dt>Inferência</dt>
+              <dd>{identification.inference_ms.toFixed(1)} ms</dd>
+            </div>
+            <div>
+              <dt>Executado em</dt>
+              <dd>{new Date(identification.created_at).toLocaleString('pt-BR')}</dd>
+            </div>
+          </dl>
+        </details>
 
         <div>
           <h4>Ranking global</h4>

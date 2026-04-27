@@ -5,9 +5,12 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
-from augochloropsis_ai.core.exceptions import InvalidRequestError
+from augochloropsis_ai.core.exceptions import InvalidRequestError, NotFoundError
 from augochloropsis_ai.db.session import get_db
-from augochloropsis_ai.schemas.global_identification import GlobalIdentificationResponse
+from augochloropsis_ai.schemas.global_identification import (
+    GlobalIdentificationFeedbackUpdate,
+    GlobalIdentificationResponse,
+)
 from augochloropsis_ai.services.global_identification_service import GlobalIdentificationService
 
 router = APIRouter(prefix="/global-identifications", tags=["global-identifications"])
@@ -33,3 +36,16 @@ def list_global_identifications(
 ):
     service = GlobalIdentificationService()
     return service.list_global_identifications(db, limit=limit, offset=offset)
+
+
+@router.patch("/{identification_id}/feedback", response_model=GlobalIdentificationResponse)
+async def set_global_identification_feedback(
+    identification_id: int,
+    body: GlobalIdentificationFeedbackUpdate,
+    db: Session = Depends(get_db),
+):
+    service = GlobalIdentificationService()
+    try:
+        return service.set_feedback(db, identification_id, body)
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc

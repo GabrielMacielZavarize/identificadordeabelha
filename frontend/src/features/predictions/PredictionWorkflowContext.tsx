@@ -29,15 +29,26 @@ function storeResult(key: string, value: unknown) {
   }
 }
 
-function resolveErrorMessage(error: unknown) {
+function resolveErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
-    return (
-      (error.response?.data as { detail?: string } | undefined)?.detail ??
-      error.message
-    )
+    const httpStatus = error.response?.status
+    const detail = (error.response?.data as { detail?: string } | undefined)?.detail
+
+    if (!error.response) {
+      return 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.'
+    }
+    if (httpStatus === 503) {
+      return 'O modelo ainda não está pronto. Tente novamente em alguns instantes.'
+    }
+    if (httpStatus === 400 || httpStatus === 422) {
+      return 'A imagem não foi aceita. Verifique se é um arquivo JPG ou PNG válido e tente novamente.'
+    }
+    return detail ?? 'Não conseguimos identificar a abelha. Tente uma foto mais nítida com fundo neutro.'
   }
 
-  return error instanceof Error ? error.message : 'Não foi possível concluir a análise.'
+  return error instanceof Error
+    ? error.message
+    : 'Não conseguimos identificar a abelha. Tente uma foto mais nítida com fundo neutro.'
 }
 
 export function PredictionWorkflowProvider({ children }: { children: ReactNode }) {
