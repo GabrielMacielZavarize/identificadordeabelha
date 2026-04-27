@@ -55,6 +55,7 @@ describe('UploadPage', () => {
         },
         created_at: '2026-04-17T12:00:00',
         inference_ms: 42,
+        user_feedback: null,
       },
     })
 

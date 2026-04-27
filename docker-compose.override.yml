@@ -1,0 +1,23 @@
+services:
+  backend:
+    command: uvicorn augochloropsis_ai.api.main:app --host 0.0.0.0 --port 8000 --reload --app-dir src
+    environment:
+      AUGOCHLOROPSIS_AI_DEBUG: "true"
+      AUGOCHLOROPSIS_AI_DATABASE_URL: sqlite:////app/data/db/app.sqlite3
+      AUGOCHLOROPSIS_AI_UPLOAD_DIR: /app/data/uploads
+      AUGOCHLOROPSIS_AI_ARTIFACTS_DIR: /app/artifacts/models
+      AUGOCHLOROPSIS_AI_CORS_ORIGINS: '["http://localhost:5173"]'
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./backend:/app/backend
+
+  frontend:
+    command: npm run dev -- --host 0.0.0.0
+    environment:
+      VITE_PROXY_TARGET: http://backend:8000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app/frontend
+      - frontend_node_modules:/app/frontend/node_modules

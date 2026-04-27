@@ -1,16 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 
-import { GlobalIdentificationResult } from '../features/predictions/GlobalIdentificationResult'
 import { PredictionForm } from '../features/predictions/PredictionForm'
-import { PredictionResult } from '../features/predictions/PredictionResult'
-import { usePredictionWorkflow } from '../features/predictions/PredictionWorkflowState'
+import { ResultPanel } from '../features/predictions/ResultPanel'
 import { api } from '../lib/http'
 import type { ModelVersion } from '../types/api'
 
 export function UploadPage() {
-  const { prediction, globalIdentification } = usePredictionWorkflow()
-
   const activeModelQuery = useQuery({
     queryKey: ['active-model'],
     queryFn: async () => {
@@ -55,10 +51,7 @@ export function UploadPage() {
 
       <div className="two-column-grid">
         <PredictionForm />
-        <div className="stack-md">
-          <PredictionResult key={prediction?.prediction_id ?? 'empty'} prediction={prediction} />
-          <GlobalIdentificationResult key={globalIdentification?.global_identification_id ?? 'empty-global'} identification={globalIdentification} />
-        </div>
+        <ResultPanel />
       </div>
     </div>
   )

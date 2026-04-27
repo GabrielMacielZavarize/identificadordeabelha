@@ -1,23 +1,44 @@
+# Python
 .venv/
 __pycache__/
 *.pyc
+*.egg-info/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .coverage
 htmlcov/
 
+# Jupyter
+notebooks/.ipynb_checkpoints/
+*.ipynb_checkpoints/
+
+# Frontend
 frontend/node_modules/
 frontend/dist/
 
+# Dados gerados em runtime
 data/uploads/*
 !data/uploads/.gitkeep
 data/db/app.sqlite3
+data/raw/images/
 data/interim/embeddings/*
 !data/interim/embeddings/.gitkeep
+data/interim/metadata/
+data/processed/
+
+# Artefatos de modelo
 artifacts/models/*
 !artifacts/models/README.md
 
-.DS_Store
+# Ambiente e segredos
 .env
+.env.*
 backend/.env
+backend/.env.*
+!.env.example
+!backend/.env.example
+
+# Sistema operacional
+.DS_Store
+Thumbs.db

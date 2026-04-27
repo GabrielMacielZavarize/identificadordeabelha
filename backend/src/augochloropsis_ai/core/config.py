@@ -11,7 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 
 class Settings(BaseSettings):
     project_name: str = "Augochloropsis Classifier API"
-    debug: bool = True
+    debug: bool = False
     api_v1_prefix: str = "/api/v1"
     database_url: str = f"sqlite:///{REPO_ROOT / 'data/db/app.sqlite3'}"
     upload_dir: Path = REPO_ROOT / "data/uploads"
@@ -31,9 +31,17 @@ class Settings(BaseSettings):
     def max_upload_size_bytes(self) -> int:
         return self.max_upload_size_mb * 1024 * 1024
 
+    uploads_base_url: str = ""
+
+    @property
+    def uploads_serve_path(self) -> str:
+        """Path usado pelo FastAPI para montar os arquivos estáticos — sempre /uploads."""
+        return "/uploads"
+
     @property
     def uploads_mount_path(self) -> str:
-        return "/uploads"
+        """Prefixo usado nas URLs de imagem retornadas pela API. Em staging/prod inclui o host."""
+        return f"{self.uploads_base_url}/uploads"
 
     def ensure_runtime_dirs(self) -> None:
         self.upload_dir.mkdir(parents=True, exist_ok=True)
