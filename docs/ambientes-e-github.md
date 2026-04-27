@@ -160,7 +160,9 @@ Acesse: **GitHub → Settings → Branches → Add branch ruleset**
 - Branch name pattern: `main`
 - Require a pull request before merging: **ativado**
 - Required approvals: **1**
-- Require status checks to pass: **ativado** (selecione os checks de CI quando configurá-los)
+- Require status checks to pass: **ativado**
+  - `Backend tests`
+  - `Frontend tests`
 - Block force pushes: **ativado**
 - Restrict deletions: **ativado**
 
@@ -169,17 +171,27 @@ Acesse: **GitHub → Settings → Branches → Add branch ruleset**
 - Require a pull request before merging: **ativado**
 - Required approvals: **1**
 - Require status checks to pass: **ativado**
+  - `Backend tests`
+  - `Frontend tests`
 - Block force pushes: **ativado**
 
 **`develop` não tem proteção** — push direto liberado para agilidade no dia a dia.
+
+O workflow em `.github/workflows/ci.yml` roda automaticamente em `push` e `pull_request` para `develop`, `staging` e `main`.
 
 ---
 
 ## Configurar branches no repositório local
 
 ```bash
-# Criar e enviar as branches (faça a partir do main atual)
-git checkout main
+# Criar e enviar as branches a partir da branch atual do repositório.
+# Neste projeto, a branch inicial no GitHub era master.
+git checkout master
+git pull origin master
+
+git checkout -b main
+git push -u origin main
+
 git checkout -b staging
 git push -u origin staging
 
@@ -189,6 +201,8 @@ git push -u origin develop
 # Definir develop como branch padrão do repositório
 # GitHub → Settings → General → Default branch → develop
 ```
+
+Depois que `develop` estiver como branch padrão e as proteções estiverem ativas, `master` pode ser removida se não houver mais dependência dela.
 
 ---
 
