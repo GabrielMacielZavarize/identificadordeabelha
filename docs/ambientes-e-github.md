@@ -119,6 +119,11 @@ docker-compose.prod.yml      ← prod (precisa especificar com -f)
 
 ## Fluxo de branches no GitHub
 
+Guias práticos:
+
+- [Guia dos desenvolvedores](./guia-desenvolvedores.md)
+- [Guia do mantenedor](./guia-mantenedor.md)
+
 ### Branches
 
 | Branch | Ambiente | Quem faz push direto |
