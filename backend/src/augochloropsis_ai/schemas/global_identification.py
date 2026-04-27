@@ -13,6 +13,7 @@ class GlobalIdentificationProbability(BaseModel):
 
 
 class GlobalIdentificationResponse(BaseModel):
+    global_identification_id: int
     image_url: str
     predicted_code: str
     predicted_scientific_name: str
@@ -21,4 +22,5 @@ class GlobalIdentificationResponse(BaseModel):
     probabilities: list[GlobalIdentificationProbability]
     model_name: str
     created_at: datetime
+    inference_ms: float
     note: str

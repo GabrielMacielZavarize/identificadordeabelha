@@ -1,20 +1,24 @@
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 
 from augochloropsis_ai.db.models import ModelVersion, Prediction, Species
 
 
 class PredictionRepository:
-    def list_predictions(self, db: Session, limit: int = 50) -> list[Prediction]:
+    def list_predictions(self, db: Session, limit: int = 50, offset: int = 0) -> list[Prediction]:
         stmt = (
             select(Prediction)
             .options(joinedload(Prediction.predicted_species), joinedload(Prediction.model_version))
-            .order_by(Prediction.created_at.desc())
+            .order_by(Prediction.created_at.desc(), Prediction.id.desc())
+            .offset(offset)
             .limit(limit)
         )
         return list(db.scalars(stmt).unique().all())
+
+    def count_predictions(self, db: Session) -> int:
+        return db.scalar(select(func.count()).select_from(Prediction)) or 0
 
     def get_prediction(self, db: Session, prediction_id: int) -> Prediction | None:
         stmt = (

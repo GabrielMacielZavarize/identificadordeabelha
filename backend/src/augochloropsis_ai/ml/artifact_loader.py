@@ -7,6 +7,7 @@ from typing import Any
 
 import yaml
 
+from augochloropsis_ai.core.config import Settings, get_settings
 from augochloropsis_ai.core.exceptions import ModelNotReadyError
 from augochloropsis_ai.db.models import ModelVersion
 from augochloropsis_ai.ml.classifier import load_classifier_state
@@ -24,8 +25,11 @@ class LoadedArtifacts:
 
 
 class ArtifactLoader:
+    def __init__(self, settings: Settings | None = None) -> None:
+        self.settings = settings or get_settings()
+
     def load(self, model_version: ModelVersion) -> LoadedArtifacts:
-        artifact_dir = Path(model_version.artifact_dir)
+        artifact_dir = self._resolve_artifact_dir(model_version)
         if not artifact_dir.exists():
             raise ModelNotReadyError(f"Artifact directory not found: {artifact_dir}")
 
@@ -62,3 +66,14 @@ class ArtifactLoader:
             config=training_config,
             metrics=metrics,
         )
+
+    def _resolve_artifact_dir(self, model_version: ModelVersion) -> Path:
+        stored_path = Path(model_version.artifact_dir)
+        if stored_path.exists():
+            return stored_path
+
+        configured_path = self.settings.artifacts_dir / stored_path.name
+        if configured_path.exists():
+            return configured_path
+
+        return stored_path

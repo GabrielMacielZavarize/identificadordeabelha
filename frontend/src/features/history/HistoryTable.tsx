@@ -1,11 +1,11 @@
-import type { PredictionResponse } from '../../types/api'
+import type { IdentificationHistoryItem } from '../../types/api'
 
 type HistoryTableProps = {
-  predictions: PredictionResponse[]
+  items: IdentificationHistoryItem[]
 }
 
-export function HistoryTable({ predictions }: HistoryTableProps) {
-  if (predictions.length === 0) {
+export function HistoryTable({ items }: HistoryTableProps) {
+  if (items.length === 0) {
     return (
       <div className="empty-state">
         <p>Nenhum resultado registrado até o momento.</p>
@@ -19,23 +19,35 @@ export function HistoryTable({ predictions }: HistoryTableProps) {
         <thead>
           <tr>
             <th>Data</th>
-            <th>Espécie prevista</th>
+            <th>Origem</th>
+            <th>Resultado</th>
             <th>Confiança</th>
             <th>Modelo</th>
             <th>Tempo</th>
           </tr>
         </thead>
         <tbody>
-          {predictions.map((prediction) => (
-            <tr key={prediction.prediction_id}>
-              <td data-label="Data">{new Date(prediction.created_at).toLocaleString('pt-BR')}</td>
-              <td data-label="Espécie prevista">
-                <strong>{prediction.predicted_species.scientific_name}</strong>
-                <div className="cell-subtitle">{prediction.predicted_species.code}</div>
+          {items.map((item) => (
+            <tr key={`${item.source}-${item.item_id}`}>
+              <td data-label="Data">{new Date(item.created_at).toLocaleString('pt-BR')}</td>
+              <td data-label="Origem">
+                <span className={`source-badge source-badge-${item.source}`}>
+                  {item.source_label}
+                </span>
               </td>
-              <td data-label="Confiança">{(prediction.confidence * 100).toFixed(2)}%</td>
-              <td data-label="Modelo">{prediction.model_version.version}</td>
-              <td data-label="Tempo">{prediction.inference_ms.toFixed(1)} ms</td>
+              <td data-label="Resultado">
+                <strong>{item.predicted_scientific_name}</strong>
+                <div className="cell-subtitle">
+                  {item.predicted_common_name
+                    ? `${item.predicted_code} · ${item.predicted_common_name}`
+                    : item.predicted_code}
+                </div>
+              </td>
+              <td data-label="Confiança">{(item.confidence * 100).toFixed(2)}%</td>
+              <td data-label="Modelo">{item.model_name}</td>
+              <td data-label="Tempo">
+                {item.inference_ms === null ? 'Não informado' : `${item.inference_ms.toFixed(1)} ms`}
+              </td>
             </tr>
           ))}
         </tbody>

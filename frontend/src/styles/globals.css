@@ -44,6 +44,7 @@ body {
 
 button,
 input,
+select,
 textarea {
   font: inherit;
 }
@@ -214,6 +215,7 @@ strong {
 }
 
 .hero-panel,
+.model-status-panel,
 .panel {
   padding: clamp(1rem, 0.8rem + 1vw, 1.5rem);
   border: 1px solid var(--border);
@@ -227,6 +229,12 @@ strong {
   grid-template-columns: minmax(0, 1.7fr) minmax(260px, 0.8fr);
   gap: 1.25rem;
   align-items: stretch;
+}
+
+.model-status-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
 }
 
 .hero-copy {
@@ -279,6 +287,10 @@ strong {
   border-left: 4px solid var(--amber);
 }
 
+.model-box-global {
+  border-left-color: var(--blue);
+}
+
 .model-box strong {
   font-size: 1.05rem;
   overflow-wrap: anywhere;
@@ -305,6 +317,7 @@ label {
 }
 
 input,
+select,
 textarea {
   width: 100%;
   padding: 0.85rem 0.95rem;
@@ -320,6 +333,7 @@ textarea {
 }
 
 input:focus,
+select:focus,
 textarea:focus,
 button:focus-visible,
 .nav-link:focus-visible {
@@ -327,7 +341,8 @@ button:focus-visible,
   outline-offset: 2px;
 }
 
-input:disabled {
+input:disabled,
+select:disabled {
   background: #f1eee4;
   color: var(--muted);
 }
@@ -377,6 +392,13 @@ input:disabled {
   flex-wrap: wrap;
   gap: 0.6rem;
   justify-content: flex-start;
+}
+
+.model-search-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
 }
 
 .metadata-grid {
@@ -449,6 +471,55 @@ input:disabled {
 
 .feedback.error {
   color: var(--danger);
+}
+
+.thinking-card {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--amber);
+  border-radius: 8px;
+  background: #fffaf0;
+}
+
+.thinking-card strong {
+  display: block;
+  margin-bottom: 0.15rem;
+}
+
+.thinking-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.thinking-orbit {
+  position: relative;
+  width: 34px;
+  aspect-ratio: 1;
+  border: 2px solid var(--green-soft);
+  border-top-color: var(--amber);
+  border-radius: 999px;
+  animation: thinking-spin 900ms linear infinite;
+}
+
+.thinking-orbit::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  aspect-ratio: 1;
+  right: 1px;
+  top: 2px;
+  border-radius: 999px;
+  background: var(--green);
+}
+
+@keyframes thinking-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .result-highlight {
@@ -552,6 +623,16 @@ h4 {
   overflow-x: auto;
 }
 
+.history-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.history-toolbar label {
+  width: min(100%, 220px);
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -580,6 +661,38 @@ h4 {
 .cell-subtitle {
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.source-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.source-badge-specific {
+  background: var(--green-soft);
+  color: var(--green-dark);
+}
+
+.source-badge-openai {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.pagination-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  color: var(--muted);
+  font-weight: 700;
 }
 
 .status-badge {
@@ -619,8 +732,10 @@ h4 {
   }
 
   .hero-panel,
+  .model-status-panel,
   .two-column-grid,
   .form-grid,
+  .model-search-row,
   .metadata-grid {
     grid-template-columns: 1fr;
   }
@@ -637,6 +752,7 @@ h4 {
 
   .app-header,
   .hero-panel,
+  .model-status-panel,
   .panel {
     padding: 0.9rem;
   }
@@ -676,8 +792,24 @@ h4 {
   }
 
   .form-footer,
+  .model-search-row .primary-button,
   .form-footer .primary-button {
     width: 100%;
+  }
+
+  .history-toolbar,
+  .pagination-controls {
+    justify-content: stretch;
+  }
+
+  .history-toolbar label,
+  .pagination-controls .secondary-button {
+    width: 100%;
+  }
+
+  .pagination-controls span {
+    width: 100%;
+    text-align: center;
   }
 
   .inline-actions {

@@ -68,3 +68,25 @@ class Prediction(Base):
 
     predicted_species: Mapped[Species] = relationship(back_populates="predictions")
     model_version: Mapped[ModelVersion] = relationship(back_populates="predictions")
+
+
+class GlobalIdentification(Base):
+    __tablename__ = "global_identifications"
+    __table_args__ = (
+        Index("ix_global_identifications_created_at", "created_at"),
+        Index("ix_global_identifications_sha256", "sha256"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    stored_path: Mapped[str] = mapped_column(String(500), nullable=False)
+    sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    predicted_code: Mapped[str] = mapped_column(String(100), nullable=False)
+    predicted_scientific_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    predicted_common_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    confidence: Mapped[float] = mapped_column(Float, nullable=False)
+    probabilities_json: Mapped[str] = mapped_column(Text, nullable=False)
+    model_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    inference_ms: Mapped[float] = mapped_column(Float, nullable=False)
+    note: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, nullable=False)

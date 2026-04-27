@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 
+import { PredictionWorkflowProvider } from '../features/predictions/PredictionWorkflowContext'
 import { UploadPage } from '../pages/UploadPage'
 
 const apiGet = vi.fn()
@@ -64,19 +65,32 @@ describe('UploadPage', () => {
     })
     render(
       <QueryClientProvider client={queryClient}>
-        <UploadPage />
+        <PredictionWorkflowProvider>
+          <UploadPage />
+        </PredictionWorkflowProvider>
       </QueryClientProvider>,
     )
 
     const user = userEvent.setup()
+    const submitButton = screen.getByRole('button', { name: /pesquisar/i })
+    expect(submitButton).toBeDisabled()
+
     const fileInput = screen.getByLabelText(/imagem da abelha/i)
     const file = new File(['bee'], 'bee.png', { type: 'image/png' })
     await user.upload(fileInput, file)
-    await user.click(screen.getByRole('button', { name: /executar classificação/i }))
+    expect(submitButton).toBeEnabled()
+    await user.click(submitButton)
 
     await waitFor(() => {
       expect(apiPost).toHaveBeenCalledTimes(1)
     })
+    expect(apiPost).toHaveBeenCalledWith(
+      '/predictions',
+      expect.any(FormData),
+      expect.objectContaining({
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }),
+    )
     expect(
       await screen.findByRole('heading', { level: 3, name: 'Augochloropsis smaragdina' }),
     ).toBeInTheDocument()

@@ -23,9 +23,13 @@ async def create_prediction(file: UploadFile = File(...), db: Session = Depends(
 
 
 @router.get("", response_model=list[PredictionResponse])
-def list_predictions(limit: int = Query(default=50, ge=1, le=200), db: Session = Depends(get_db)):
+def list_predictions(
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+):
     service = PredictionService()
-    return service.list_predictions(db, limit=limit)
+    return service.list_predictions(db, limit=limit, offset=offset)
 
 
 @router.get("/{prediction_id}", response_model=PredictionResponse)

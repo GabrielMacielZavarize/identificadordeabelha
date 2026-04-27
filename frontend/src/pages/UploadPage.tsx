@@ -1,18 +1,15 @@
-import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 
 import { GlobalIdentificationResult } from '../features/predictions/GlobalIdentificationResult'
 import { PredictionForm } from '../features/predictions/PredictionForm'
 import { PredictionResult } from '../features/predictions/PredictionResult'
+import { usePredictionWorkflow } from '../features/predictions/PredictionWorkflowState'
 import { api } from '../lib/http'
-import type { GlobalIdentificationResponse, ModelVersion, PredictionResponse } from '../types/api'
+import type { ModelVersion } from '../types/api'
 
 export function UploadPage() {
-  const [prediction, setPrediction] = useState<PredictionResponse | null>(null)
-  const [globalIdentification, setGlobalIdentification] = useState<GlobalIdentificationResponse | null>(
-    null,
-  )
+  const { prediction, globalIdentification } = usePredictionWorkflow()
 
   const activeModelQuery = useQuery({
     queryKey: ['active-model'],
@@ -29,22 +26,9 @@ export function UploadPage() {
 
   return (
     <div className="stack-lg">
-      <section className="hero-panel">
-        <div className="hero-copy">
-          <p className="eyebrow">Identificação visual</p>
-          <h2>Classifique imagens com mais organização</h2>
-          <p>
-            Envie uma foto, consulte a espécie prevista e confira a confiança do modelo em uma
-            tela preparada para análise rápida.
-          </p>
-          <div className="hero-tags" aria-label="Recursos disponíveis">
-            <span>Modelo global separado</span>
-            <span>Modelo específico próprio</span>
-            <span>Histórico do modelo específico</span>
-          </div>
-        </div>
-        <aside className="model-box" aria-label="Status do modelo ativo">
-          <p className="model-label">Status do modelo</p>
+      <section className="model-status-panel" aria-label="Modelos disponíveis">
+        <aside className="model-box" aria-label="Status do modelo do projeto">
+          <p className="model-label">Nosso modelo</p>
           {activeModelQuery.data ? (
             <>
               <span className="status-badge status-active">Ativo</span>
@@ -61,13 +45,16 @@ export function UploadPage() {
             </>
           )}
         </aside>
+        <aside className="model-box model-box-global" aria-label="Status do identificador OpenAI">
+          <p className="model-label">OpenAI</p>
+          <span className="status-badge status-active">Disponível</span>
+          <strong>CLIP global</strong>
+          <p className="model-helper">Identificador amplo para comparação com o modelo do projeto.</p>
+        </aside>
       </section>
 
       <div className="two-column-grid">
-        <PredictionForm
-          onGlobalSuccess={setGlobalIdentification}
-          onSpecificSuccess={setPrediction}
-        />
+        <PredictionForm />
         <div className="stack-md">
           <PredictionResult prediction={prediction} />
           <GlobalIdentificationResult identification={globalIdentification} />

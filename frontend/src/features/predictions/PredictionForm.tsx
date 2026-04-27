@@ -1,83 +1,77 @@
-import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
-import { useForm } from 'react-hook-form'
-import axios from 'axios'
+import { useEffect, useState, type FormEvent } from 'react'
 
-import { api } from '../../lib/http'
-import type { GlobalIdentificationResponse, PredictionResponse } from '../../types/api'
+import {
+  CLASSIFICATION_MODEL_OPTIONS,
+  usePredictionWorkflow,
+  type ClassificationModelId,
+} from './PredictionWorkflowState'
 
-type UploadFormValues = {
-  file: FileList
+const THINKING_MESSAGES = [
+  'Analisando as asas com bastante carinho.',
+  'Buscando pistas no pólen digital da imagem.',
+  'Conferindo listras, reflexos e aquele brilho metálico.',
+  'Você sabia? Existem mais de 20 mil espécies de abelhas descritas no mundo.',
+  'Perguntando para a central do néctar qual parece ser essa espécie.',
+  'Comparando a foto com nosso jardim de referências.',
+  'Observando o formato do corpo com olhar de apicultor experiente.',
+  'Decifrando padrões como quem lê o mapa de um jardim secreto.',
+  'Checando antenas, olhos e pequenos detalhes dourados.',
+  'Explorando o universo das abelhas pixel por pixel.',
+  'Buscando semelhanças no nosso arquivo cheio de zumbidos.',
+  'Analisando cores como se fossem flores em primavera.',
+  'Tentando ouvir o zumbido só de olhar a imagem.',
+  'Conectando pistas como uma colmeia bem organizada.',
+  'Revisando cada detalhe com precisão de abelha operária.',
+  'Você sabia? Algumas abelhas conseguem reconhecer rostos humanos.',
+  'Afinando o radar para encontrar a espécie certa.',
+  'Explorando cada cantinho da imagem em busca de pistas.',
+  'Consultando especialistas do mundo das flores.',
+  'Identificando padrões com a calma de um voo suave.',
+  'Quase lá… só mais um voo de análise!'
+]
+
+function getRandomThinkingMessageIndex(currentIndex?: number) {
+  if (THINKING_MESSAGES.length <= 1) {
+    return 0
+  }
+
+  const availableIndexes = THINKING_MESSAGES
+    .map((_, index) => index)
+    .filter((index) => index !== currentIndex)
+
+  return availableIndexes[Math.floor(Math.random() * availableIndexes.length)]
 }
 
-type PredictionFormProps = {
-  onGlobalSuccess: (identification: GlobalIdentificationResponse) => void
-  onSpecificSuccess: (prediction: PredictionResponse) => void
-}
-
-export function PredictionForm({ onGlobalSuccess, onSpecificSuccess }: PredictionFormProps) {
+export function PredictionForm() {
   const [selectedName, setSelectedName] = useState<string>('Nenhum arquivo selecionado')
-  const { handleSubmit, register } = useForm<UploadFormValues>()
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [selectedModel, setSelectedModel] = useState<ClassificationModelId>('specific')
+  const [thinkingMessageIndex, setThinkingMessageIndex] = useState(() =>
+    getRandomThinkingMessageIndex(),
+  )
+  const { errorMessage, isPending, pendingModel, runAnalysis } = usePredictionWorkflow()
 
-  const specificMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const payload = new FormData()
-      payload.append('file', file)
-      const response = await api.post<PredictionResponse>('/predictions', payload, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      return response.data
-    },
-    onSuccess: (data) => {
-      onSpecificSuccess(data)
-    },
-  })
-
-  const globalMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const payload = new FormData()
-      payload.append('file', file)
-      const response = await api.post<GlobalIdentificationResponse>('/global-identifications', payload, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      return response.data
-    },
-    onSuccess: (data) => {
-      onGlobalSuccess(data)
-    },
-  })
-
-  const submitSpecific = handleSubmit((values) => {
-    const file = values.file?.[0]
-    if (!file) {
+  useEffect(() => {
+    if (!isPending) {
       return
     }
-    specificMutation.mutate(file)
-  })
 
-  const submitGlobal = handleSubmit((values) => {
-    const file = values.file?.[0]
-    if (!file) {
+    const interval = window.setInterval(() => {
+      setThinkingMessageIndex((current) => getRandomThinkingMessageIndex(current))
+    }, 2800)
+
+    return () => window.clearInterval(interval)
+  }, [isPending])
+
+  const submitSearch = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!selectedFile || isPending) {
       return
     }
-    globalMutation.mutate(file)
-  })
 
-  const specificErrorMessage = axios.isAxiosError(specificMutation.error)
-    ? (specificMutation.error.response?.data as { detail?: string } | undefined)?.detail ??
-      specificMutation.error.message
-    : specificMutation.error instanceof Error
-      ? specificMutation.error.message
-      : null
-
-  const globalErrorMessage = axios.isAxiosError(globalMutation.error)
-    ? (globalMutation.error.response?.data as { detail?: string } | undefined)?.detail ??
-      globalMutation.error.message
-    : globalMutation.error instanceof Error
-      ? globalMutation.error.message
-      : null
-
-  const isPending = specificMutation.isPending || globalMutation.isPending
+    setThinkingMessageIndex((current) => getRandomThinkingMessageIndex(current))
+    await runAnalysis(selectedFile, selectedModel)
+  }
 
   return (
     <section className="panel">
@@ -86,7 +80,7 @@ export function PredictionForm({ onGlobalSuccess, onSpecificSuccess }: Predictio
         <p>Envie uma imagem JPG ou PNG e escolha qual modelo deve avaliar a foto.</p>
       </div>
 
-      <form className="stack-md">
+      <form className="stack-md" onSubmit={submitSearch}>
         <label className="file-input upload-dropzone" htmlFor="bee-image">
           <span className="field-label">Imagem da abelha</span>
           <span className="upload-title">Selecione uma foto para classificar</span>
@@ -95,27 +89,55 @@ export function PredictionForm({ onGlobalSuccess, onSpecificSuccess }: Predictio
             id="bee-image"
             type="file"
             accept=".jpg,.jpeg,.png,image/png,image/jpeg"
-            {...register('file', {
-              required: true,
-              onChange: (event) => {
-                const file = (event.target as HTMLInputElement).files?.[0]
-                setSelectedName(file?.name ?? 'Nenhum arquivo selecionado')
-              },
-            })}
+            onChange={(event) => {
+              const file = event.currentTarget.files?.[0] ?? null
+              setSelectedFile(file)
+              setSelectedName(file?.name ?? 'Nenhum arquivo selecionado')
+            }}
           />
         </label>
 
-        <div className="form-footer">
-          <button className="primary-button" type="button" disabled={isPending} onClick={submitSpecific}>
-            {specificMutation.isPending ? 'Classificando...' : 'Executar classificação específica'}
-          </button>
-          <button className="secondary-button" type="button" disabled={isPending} onClick={submitGlobal}>
-            {globalMutation.isPending ? 'Consultando...' : 'Usar identificador global'}
+        <div className="model-search-row">
+          <label htmlFor="classification-model">
+            <span className="field-label">Modelo</span>
+            <select
+              id="classification-model"
+              value={selectedModel}
+              onChange={(event) => setSelectedModel(event.target.value as ClassificationModelId)}
+              disabled={isPending}
+            >
+              {CLASSIFICATION_MODEL_OPTIONS.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <button className="primary-button" type="submit" disabled={!selectedFile || isPending}>
+            {isPending
+              ? pendingModel === 'openai'
+                ? 'Consultando...'
+                : 'Classificando...'
+              : 'Pesquisar'}
           </button>
         </div>
 
-        {specificErrorMessage ? <p className="feedback error">{specificErrorMessage}</p> : null}
-        {globalErrorMessage ? <p className="feedback error">{globalErrorMessage}</p> : null}
+        {isPending ? (
+          <div className="thinking-card" aria-live="polite">
+            <span className="thinking-orbit" aria-hidden="true" />
+            <div>
+              <strong>
+                {pendingModel === 'openai'
+                  ? 'O identificador global está pensando...'
+                  : 'Nosso modelo está pensando...'}
+              </strong>
+              <p>{THINKING_MESSAGES[thinkingMessageIndex]}</p>
+            </div>
+          </div>
+        ) : null}
+
+        {errorMessage ? <p className="feedback error">{errorMessage}</p> : null}
       </form>
     </section>
   )

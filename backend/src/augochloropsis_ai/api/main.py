@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from augochloropsis_ai.api.routes import (
     global_identifications,
+    history,
     health,
     models,
     predictions,
@@ -52,6 +53,7 @@ def create_app() -> FastAPI:
     app.include_router(species.router, prefix=settings.api_v1_prefix)
     app.include_router(predictions.router, prefix=settings.api_v1_prefix)
     app.include_router(global_identifications.router, prefix=settings.api_v1_prefix)
+    app.include_router(history.router, prefix=settings.api_v1_prefix)
     app.include_router(models.router, prefix=settings.api_v1_prefix)
     return app
 

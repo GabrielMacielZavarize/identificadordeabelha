@@ -52,6 +52,10 @@ export function GlobalIdentificationResult({ identification }: GlobalIdentificat
             <dd>{identification.model_name}</dd>
           </div>
           <div>
+            <dt>Inferência</dt>
+            <dd>{identification.inference_ms.toFixed(1)} ms</dd>
+          </div>
+          <div>
             <dt>Executado em</dt>
             <dd>{new Date(identification.created_at).toLocaleString('pt-BR')}</dd>
           </div>

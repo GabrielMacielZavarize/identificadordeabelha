@@ -69,8 +69,13 @@ class PredictionService:
         db.refresh(prediction)
         return self._build_response(prediction, serialized_probabilities)
 
-    def list_predictions(self, db: Session, limit: int = 50) -> list[PredictionResponse]:
-        predictions = self.prediction_repository.list_predictions(db, limit=limit)
+    def list_predictions(
+        self,
+        db: Session,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> list[PredictionResponse]:
+        predictions = self.prediction_repository.list_predictions(db, limit=limit, offset=offset)
         return [self._build_response(prediction) for prediction in predictions]
 
     def get_prediction(self, db: Session, prediction_id: int) -> PredictionResponse:
