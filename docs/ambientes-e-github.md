@@ -122,7 +122,6 @@ docker-compose.prod.yml      ← prod (precisa especificar com -f)
 Guias práticos:
 
 - [Guia dos desenvolvedores](./guia-desenvolvedores.md)
-- [Guia do mantenedor](./guia-mantenedor.md)
 
 ### Branches
 
