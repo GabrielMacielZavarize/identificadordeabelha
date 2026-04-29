@@ -11,6 +11,11 @@ router = APIRouter(prefix="/models", tags=["models"])
 repository = ModelRepository()
 
 
+@router.get("", response_model=list[ModelVersionRead])
+def list_model_versions(db: Session = Depends(get_db)):
+    return repository.list_model_versions(db)
+
+
 @router.get("/active", response_model=ModelVersionRead)
 def get_active_model(db: Session = Depends(get_db)):
     model_version = repository.get_active_model(db)

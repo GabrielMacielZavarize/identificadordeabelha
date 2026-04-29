@@ -5,11 +5,14 @@ import axios from 'axios'
 import { api } from '../../lib/http'
 import type { GlobalIdentificationResponse, PredictionResponse } from '../../types/api'
 import {
+  getProjectModelVersion,
+  isProjectModelId,
   PredictionWorkflowContext,
   type ClassificationModelId,
 } from './PredictionWorkflowState'
 
-const PREDICTION_STORAGE_KEY = 'augochloropsis.latestPrediction'
+const PROJECT_PREDICTIONS_STORAGE_KEY = 'augochloropsis.projectPredictions'
+const LATEST_PROJECT_VERSION_STORAGE_KEY = 'augochloropsis.latestProjectVersion'
 const GLOBAL_IDENTIFICATION_STORAGE_KEY = 'augochloropsis.latestGlobalIdentification'
 
 function readStoredResult<T>(key: string): T | null {
@@ -53,8 +56,11 @@ function resolveErrorMessage(error: unknown): string {
 
 export function PredictionWorkflowProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
-  const [prediction, setPrediction] = useState<PredictionResponse | null>(() =>
-    readStoredResult<PredictionResponse>(PREDICTION_STORAGE_KEY),
+  const [projectPredictions, setProjectPredictions] = useState<Record<string, PredictionResponse>>(
+    () => readStoredResult<Record<string, PredictionResponse>>(PROJECT_PREDICTIONS_STORAGE_KEY) ?? {},
+  )
+  const [latestProjectVersion, setLatestProjectVersion] = useState<string | null>(() =>
+    readStoredResult<string>(LATEST_PROJECT_VERSION_STORAGE_KEY),
   )
   const [globalIdentification, setGlobalIdentification] =
     useState<GlobalIdentificationResponse | null>(() =>
@@ -73,12 +79,20 @@ export function PredictionWorkflowProvider({ children }: { children: ReactNode }
     setErrorMessage(null)
 
     try {
-      if (modelId === 'specific') {
+      if (isProjectModelId(modelId)) {
+        const selectedVersion = getProjectModelVersion(modelId)
         const response = await api.post<PredictionResponse>('/predictions', payload, {
+          params: { model_version: selectedVersion },
           headers: { 'Content-Type': 'multipart/form-data' },
         })
-        setPrediction(response.data)
-        storeResult(PREDICTION_STORAGE_KEY, response.data)
+        const responseVersion = response.data.model_version.version
+        setProjectPredictions((current) => {
+          const next = { ...current, [responseVersion]: response.data }
+          storeResult(PROJECT_PREDICTIONS_STORAGE_KEY, next)
+          return next
+        })
+        setLatestProjectVersion(responseVersion)
+        storeResult(LATEST_PROJECT_VERSION_STORAGE_KEY, responseVersion)
       } else {
         const response = await api.post<GlobalIdentificationResponse>(
           '/global-identifications',
@@ -101,15 +115,31 @@ export function PredictionWorkflowProvider({ children }: { children: ReactNode }
   }, [queryClient])
 
   const value = useMemo(
-    () => ({
-      prediction,
+    () => {
+      const prediction = latestProjectVersion
+        ? projectPredictions[latestProjectVersion] ?? null
+        : Object.values(projectPredictions)[0] ?? null
+
+      return {
+        prediction,
+        projectPredictions,
+        latestProjectVersion,
+        globalIdentification,
+        isPending,
+        pendingModel,
+        errorMessage,
+        runAnalysis,
+      }
+    },
+    [
+      errorMessage,
       globalIdentification,
       isPending,
+      latestProjectVersion,
       pendingModel,
-      errorMessage,
+      projectPredictions,
       runAnalysis,
-    }),
-    [errorMessage, globalIdentification, isPending, pendingModel, prediction, runAnalysis],
+    ],
   )
 
   return (

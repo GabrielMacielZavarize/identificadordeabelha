@@ -19,16 +19,18 @@ vi.mock('../lib/http', () => ({
 describe('UploadPage', () => {
   it('submits an image and renders the prediction result', async () => {
     apiGet.mockResolvedValueOnce({
-      data: {
-        id: 1,
-        version: 'dinov2_base_mlp_v001',
-        encoder_name: 'facebook/dinov2-base',
-        classifier_type: 'mlp',
-        artifact_dir: '/tmp/model',
-        metrics_json: '{}',
-        is_active: true,
-        created_at: '2026-04-17T12:00:00',
-      },
+      data: [
+        {
+          id: 1,
+          version: 'dinov2_base_mlp_v001',
+          encoder_name: 'facebook/dinov2-base',
+          classifier_type: 'mlp',
+          artifact_dir: '/tmp/model',
+          metrics_json: '{}',
+          is_active: true,
+          created_at: '2026-04-17T12:00:00',
+        },
+      ],
     })
     apiPost.mockResolvedValueOnce({
       data: {
@@ -73,6 +75,8 @@ describe('UploadPage', () => {
     )
 
     const user = userEvent.setup()
+    expect((await screen.findAllByText(/DINOv2 Base \+ MLP/i)).length).toBeGreaterThan(0)
+
     const submitButton = screen.getByRole('button', { name: /pesquisar/i })
     expect(submitButton).toBeDisabled()
 
@@ -89,6 +93,7 @@ describe('UploadPage', () => {
       '/predictions',
       expect.any(FormData),
       expect.objectContaining({
+        params: { model_version: 'dinov2_base_mlp_v001' },
         headers: { 'Content-Type': 'multipart/form-data' },
       }),
     )

@@ -1,10 +1,22 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 
 import { api } from '../../lib/http'
-import type { GlobalIdentificationResponse, PredictionResponse } from '../../types/api'
-import { usePredictionWorkflow } from './PredictionWorkflowState'
+import type { GlobalIdentificationResponse, ModelVersion, PredictionResponse } from '../../types/api'
+import {
+  createProjectModelId,
+  formatProjectModelLabel,
+  isProjectModelId,
+  OPENAI_MODEL_ID,
+  usePredictionWorkflow,
+  type ClassificationModelId,
+  type ProjectModelId,
+} from './PredictionWorkflowState'
 
-type ActiveTab = 'specific' | 'openai'
+type ProjectResultTab = {
+  id: ProjectModelId
+  label: string
+  prediction: PredictionResponse | null
+}
 
 function confidenceClass(value: number): string {
   if (value >= 0.8) return 'confidence-high'
@@ -44,7 +56,13 @@ function FeedbackRow({
   )
 }
 
-function SpecificContent({ prediction }: { prediction: PredictionResponse }) {
+function SpecificContent({
+  prediction,
+  modelLabel,
+}: {
+  prediction: PredictionResponse
+  modelLabel: string
+}) {
   const [feedback, setFeedback] = useState<boolean | null>(prediction.user_feedback ?? null)
   const [isSending, setIsSending] = useState(false)
 
@@ -88,6 +106,10 @@ function SpecificContent({ prediction }: { prediction: PredictionResponse }) {
         <dl className="metadata-grid">
           <div>
             <dt>Modelo</dt>
+            <dd>{modelLabel}</dd>
+          </div>
+          <div>
+            <dt>Versão</dt>
             <dd>{prediction.model_version.version}</dd>
           </div>
           <div>
@@ -213,29 +235,54 @@ function GlobalContent({ identification }: { identification: GlobalIdentificatio
   )
 }
 
-export function ResultPanel() {
-  const { prediction, globalIdentification } = usePredictionWorkflow()
-  const [activeTab, setActiveTab] = useState<ActiveTab>('specific')
+function buildStoredProjectTabs(
+  projectPredictions: Record<string, PredictionResponse>,
+  listedVersions: Set<string>,
+): ProjectResultTab[] {
+  return Object.entries(projectPredictions)
+    .filter(([version]) => !listedVersions.has(version))
+    .map(([version, prediction]) => ({
+      id: createProjectModelId(version),
+      label: formatProjectModelLabel({
+        version,
+        encoder_name: prediction.model_version.encoder_name,
+        classifier_type: prediction.model_version.classifier_type,
+      }),
+      prediction,
+    }))
+}
 
-  const prevPredId = useRef(prediction?.prediction_id)
-  const prevGlobalId = useRef(globalIdentification?.global_identification_id)
+export function ResultPanel({ modelVersions }: { modelVersions: ModelVersion[] }) {
+  const { projectPredictions, latestProjectVersion, globalIdentification } = usePredictionWorkflow()
+  const [selectedTab, setSelectedTab] = useState<ClassificationModelId | null>(null)
 
-  useEffect(() => {
-    if (prediction && prediction.prediction_id !== prevPredId.current) {
-      setActiveTab('specific')
-      prevPredId.current = prediction.prediction_id
-    }
-  }, [prediction])
+  const listedVersions = new Set(modelVersions.map((model) => model.version))
+  const projectTabs: ProjectResultTab[] = [
+    ...modelVersions.map((model) => ({
+      id: createProjectModelId(model.version),
+      label: formatProjectModelLabel(model),
+      prediction: projectPredictions[model.version] ?? null,
+    })),
+    ...buildStoredProjectTabs(projectPredictions, listedVersions),
+  ]
+  const latestProjectTab =
+    latestProjectVersion && projectTabs.some((tab) => tab.id === createProjectModelId(latestProjectVersion))
+      ? createProjectModelId(latestProjectVersion)
+      : null
+  const activeModel = modelVersions.find((model) => model.is_active) ?? modelVersions[0]
+  const fallbackTab =
+    latestProjectTab ??
+    (activeModel ? createProjectModelId(activeModel.version) : projectTabs[0]?.id) ??
+    OPENAI_MODEL_ID
+  const selectedTabIsAvailable =
+    selectedTab === OPENAI_MODEL_ID ||
+    (selectedTab !== null && isProjectModelId(selectedTab) && projectTabs.some((tab) => tab.id === selectedTab))
+  const activeTab = selectedTab && selectedTabIsAvailable ? selectedTab : fallbackTab
 
-  useEffect(() => {
-    if (globalIdentification && globalIdentification.global_identification_id !== prevGlobalId.current) {
-      setActiveTab('openai')
-      prevGlobalId.current = globalIdentification.global_identification_id
-    }
-  }, [globalIdentification])
-
-  const hasSpecific = prediction !== null
   const hasGlobal = globalIdentification !== null
+  const activeProjectTab = isProjectModelId(activeTab)
+    ? projectTabs.find((tab) => tab.id === activeTab) ?? null
+    : null
 
   return (
     <section className="panel">
@@ -245,35 +292,42 @@ export function ResultPanel() {
       </div>
 
       <div className="result-tabs" role="tablist">
+        {projectTabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            className={`result-tab${activeTab === tab.id ? ' result-tab-active' : ''}`}
+            onClick={() => setSelectedTab(tab.id)}
+          >
+            {tab.label}
+            {tab.prediction && <span className="tab-dot" aria-hidden="true" />}
+          </button>
+        ))}
         <button
           type="button"
           role="tab"
-          aria-selected={activeTab === 'specific'}
-          className={`result-tab${activeTab === 'specific' ? ' result-tab-active' : ''}`}
-          onClick={() => setActiveTab('specific')}
+          aria-selected={activeTab === OPENAI_MODEL_ID}
+          className={`result-tab${activeTab === OPENAI_MODEL_ID ? ' result-tab-active result-tab-active-global' : ''}`}
+          onClick={() => setSelectedTab(OPENAI_MODEL_ID)}
         >
-          Nosso modelo
-          {hasSpecific && <span className="tab-dot" aria-hidden="true" />}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'openai'}
-          className={`result-tab${activeTab === 'openai' ? ' result-tab-active result-tab-active-global' : ''}`}
-          onClick={() => setActiveTab('openai')}
-        >
-          Identificador global
+          OpenAI CLIP global
           {hasGlobal && <span className="tab-dot tab-dot-global" aria-hidden="true" />}
         </button>
       </div>
 
-      {activeTab === 'specific' ? (
-        hasSpecific ? (
-          <SpecificContent key={prediction.prediction_id} prediction={prediction} />
+      {activeProjectTab ? (
+        activeProjectTab.prediction ? (
+          <SpecificContent
+            key={activeProjectTab.prediction.prediction_id}
+            prediction={activeProjectTab.prediction}
+            modelLabel={activeProjectTab.label}
+          />
         ) : (
           <div className="empty-state empty-state-center">
             <span className="empty-icon" aria-hidden="true" />
-            <p>Execute uma análise com <strong>Nosso modelo</strong> para ver o resultado aqui.</p>
+            <p>Execute uma análise com <strong>{activeProjectTab.label}</strong> para ver o resultado aqui.</p>
           </div>
         )
       ) : (
@@ -282,7 +336,7 @@ export function ResultPanel() {
         ) : (
           <div className="empty-state empty-state-center">
             <span className="empty-icon" aria-hidden="true" />
-            <p>Execute uma análise com <strong>Identificador global</strong> para ver o resultado aqui.</p>
+            <p>Execute uma análise com <strong>OpenAI CLIP global</strong> para ver o resultado aqui.</p>
           </div>
         )
       )}

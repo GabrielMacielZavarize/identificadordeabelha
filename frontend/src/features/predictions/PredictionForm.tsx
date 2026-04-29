@@ -1,10 +1,16 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 
 import {
-  CLASSIFICATION_MODEL_OPTIONS,
+  createProjectModelId,
+  formatProjectModelOptionLabel,
+  formatProjectModelLabel,
+  getProjectModelVersion,
+  isProjectModelId,
+  OPENAI_MODEL_ID,
   usePredictionWorkflow,
   type ClassificationModelId,
 } from './PredictionWorkflowState'
+import type { ModelVersion } from '../../types/api'
 
 const THINKING_MESSAGES = [
   'Analisando as asas com bastante carinho.',
@@ -42,16 +48,49 @@ function getRandomThinkingMessageIndex(currentIndex?: number) {
   return availableIndexes[Math.floor(Math.random() * availableIndexes.length)]
 }
 
-export function PredictionForm() {
+function resolveClassificationModelLabel(
+  modelId: ClassificationModelId | null,
+  modelVersions: ModelVersion[],
+) {
+  if (!modelId || modelId === OPENAI_MODEL_ID) {
+    return 'OpenAI CLIP global'
+  }
+
+  const version = getProjectModelVersion(modelId)
+  const model = modelVersions.find((item) => item.version === version)
+  if (model) {
+    return formatProjectModelLabel(model)
+  }
+
+  return version.replace(/_/g, ' ')
+}
+
+type PredictionFormProps = {
+  modelVersions: ModelVersion[]
+  isLoadingModels?: boolean
+}
+
+export function PredictionForm({ modelVersions, isLoadingModels = false }: PredictionFormProps) {
   const [selectedName, setSelectedName] = useState<string>('Nenhum arquivo selecionado')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [selectedModel, setSelectedModel] = useState<ClassificationModelId>('specific')
+  const [manualSelectedModel, setManualSelectedModel] = useState<ClassificationModelId | null>(null)
   const [thinkingMessageIndex, setThinkingMessageIndex] = useState(() =>
     getRandomThinkingMessageIndex(),
   )
   const { errorMessage, isPending, pendingModel, runAnalysis } = usePredictionWorkflow()
   const previewUrlRef = useRef<string | null>(null)
+  const defaultProjectModel = modelVersions.find((model) => model.is_active) ?? modelVersions[0]
+  const defaultModelId = defaultProjectModel
+    ? createProjectModelId(defaultProjectModel.version)
+    : OPENAI_MODEL_ID
+  const manualSelectedModelIsAvailable =
+    manualSelectedModel === OPENAI_MODEL_ID ||
+    (manualSelectedModel !== null &&
+      isProjectModelId(manualSelectedModel) &&
+      modelVersions.some((model) => model.version === getProjectModelVersion(manualSelectedModel)))
+  const selectedModel =
+    manualSelectedModel && manualSelectedModelIsAvailable ? manualSelectedModel : defaultModelId
 
   useEffect(() => {
     if (!isPending) {
@@ -131,14 +170,15 @@ export function PredictionForm() {
             <select
               id="classification-model"
               value={selectedModel}
-              onChange={(event) => setSelectedModel(event.target.value as ClassificationModelId)}
+              onChange={(event) => setManualSelectedModel(event.target.value as ClassificationModelId)}
               disabled={isPending}
             >
-              {CLASSIFICATION_MODEL_OPTIONS.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label}
+              {modelVersions.map((model) => (
+                <option key={model.version} value={createProjectModelId(model.version)}>
+                  {formatProjectModelOptionLabel(model)}
                 </option>
               ))}
+              <option value={OPENAI_MODEL_ID}>OpenAI CLIP global</option>
             </select>
           </label>
 
@@ -156,13 +196,17 @@ export function PredictionForm() {
             <span className="thinking-orbit" aria-hidden="true" />
             <div>
               <strong>
-                {pendingModel === 'openai'
-                  ? 'O identificador global está pensando...'
-                  : 'Nosso modelo está pensando...'}
+                {`${resolveClassificationModelLabel(pendingModel, modelVersions)} está pensando...`}
               </strong>
               <p>{THINKING_MESSAGES[thinkingMessageIndex]}</p>
             </div>
           </div>
+        ) : null}
+
+        {!isLoadingModels && modelVersions.length === 0 ? (
+          <p className="feedback">
+            Nenhum modelo DINO treinado está registrado. O identificador global continua disponível.
+          </p>
         ) : null}
 
         {errorMessage ? <p className="feedback error">{errorMessage}</p> : null}

@@ -14,6 +14,13 @@ class ModelRepository:
         stmt = select(ModelVersion).where(ModelVersion.is_active.is_(True)).limit(1)
         return db.scalar(stmt)
 
+    def list_model_versions(self, db: Session) -> list[ModelVersion]:
+        stmt = select(ModelVersion).order_by(
+            ModelVersion.is_active.desc(),
+            ModelVersion.created_at.desc(),
+        )
+        return list(db.scalars(stmt))
+
     def get_by_version(self, db: Session, version: str) -> ModelVersion | None:
         stmt = select(ModelVersion).where(ModelVersion.version == version).limit(1)
         return db.scalar(stmt)

@@ -26,11 +26,19 @@ Monorepo acadêmico para classificação de espécies do gênero *Augochloropsis
 
 Use Docker quando quiser iniciar backend e frontend juntos, sem manter dois terminais configurados manualmente.
 
+Se o modelo ativo for DINOv3, informe um token Hugging Face com acesso ao repositório gated da Meta. O login feito no host com `hf auth login` não entra automaticamente no container:
+
+```bash
+export HF_TOKEN=hf_seu_token_read_aqui
+```
+
+Também pode copiar `.env.example` para `.env` e preencher `HF_TOKEN` ali. Não commite esse arquivo.
+
 ```bash
 docker compose up --build
 ```
 
-O primeiro build pode demorar porque instala PyTorch, Transformers e dependências de visão computacional no container do backend.
+O primeiro build pode demorar porque instala PyTorch, Transformers e dependências de visão computacional no container do backend. A primeira inferência com DINOv3 também pode demorar porque o container baixa os pesos do Hugging Face; o cache fica persistido em um volume Docker.
 
 Depois acesse:
 
@@ -92,7 +100,7 @@ npm run dev
 
 Por padrão, o Vite usa proxy para `http://localhost:8000`, então o frontend pode chamar `/api/v1` e `/uploads` sem configurar `VITE_API_BASE_URL`.
 
-## Modelo específico ativo
+## Modelos DINO treinados
 
 O experimento piloto atual usa:
 
@@ -102,6 +110,8 @@ O experimento piloto atual usa:
 - dataset piloto: imagens públicas filtradas de GBIF/iNaturalist.
 
 Esse modelo é o resultado principal do projeto. O identificador global com CLIP é apenas um baseline comparativo e não substitui o modelo específico treinado para *Augochloropsis*.
+
+O frontend lista as versões registradas em `/api/v1/models`. Assim, versões DINOv2 e DINOv3 podem ficar disponíveis no mesmo seletor para comparação, desde que seus artefatos tenham sido treinados e registrados pelo pipeline.
 
 ## Pipeline offline de treino
 
@@ -126,6 +136,36 @@ python scripts/run_training_pipeline.py \
   --encoder-name facebook/dinov2-small \
   --version dinov2_small_mlp_demo_v002
 ```
+
+Para criar uma versão experimental com DINOv3 e comparar contra o DINOv2:
+
+1. Acesse a página do modelo no Hugging Face, aceite os termos da licença e autentique a máquina:
+
+```bash
+huggingface-cli login
+```
+
+Também é possível exportar um token com acesso ao modelo:
+
+```bash
+export HF_TOKEN=<seu-token>
+```
+
+2. Execute o pipeline:
+
+```bash
+cd backend
+source ../.venv/bin/activate
+python scripts/run_training_pipeline.py \
+  --raw-catalog ../data/raw/metadata/raw_catalog.csv \
+  --clean-catalog ../data/interim/metadata/clean_catalog.csv \
+  --split-manifest ../data/processed/metadata/split_manifest.csv \
+  --embeddings-dir ../data/interim/embeddings/dinov3_vits16_mlp_test_v001 \
+  --encoder-name facebook/dinov3-vits16-pretrain-lvd1689m \
+  --version dinov3_vits16_mlp_test_v001
+```
+
+O DINOv3 requer `transformers>=4.56`. A primeira execução baixa os pesos do Hugging Face, então precisa de internet, acesso concedido ao repositório gated da Meta e pode demorar.
 
 ## Testes e qualidade
 

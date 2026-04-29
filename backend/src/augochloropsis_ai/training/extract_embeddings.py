@@ -47,7 +47,7 @@ def extract_embeddings(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Extract DINOv2 embeddings for each dataset split.")
+    parser = argparse.ArgumentParser(description="Extract DINO embeddings for each dataset split.")
     parser.add_argument("--split-manifest", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--model-name", type=str, default="facebook/dinov2-base")

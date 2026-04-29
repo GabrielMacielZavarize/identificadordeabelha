@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
@@ -40,21 +41,40 @@ class PredictionService:
         self.storage_service = storage_service or StorageService(self.settings)
         self.inference_pipeline = inference_pipeline or InferencePipeline()
 
-    async def create_prediction(self, db: Session, upload_file: UploadFile) -> PredictionResponse:
-        active_model = self.model_repository.get_active_model(db)
-        if active_model is None:
+    async def create_prediction(
+        self,
+        db: Session,
+        upload_file: UploadFile,
+        model_version: str | None = None,
+    ) -> PredictionResponse:
+        selected_model = (
+            self.model_repository.get_by_version(db, model_version)
+            if model_version
+            else self.model_repository.get_active_model(db)
+        )
+        if selected_model is None:
+            if model_version:
+                raise NotFoundError(f"Model version not found: {model_version}")
             raise ModelNotReadyError("No active model version is registered.")
 
         stored_upload = await self.storage_service.store_upload(upload_file)
-        inference = self.inference_pipeline.predict_bytes(stored_upload.content, active_model)
+        try:
+            inference = self.inference_pipeline.predict_bytes(stored_upload.content, selected_model)
+        except RuntimeError as exc:
+            raise ModelNotReadyError(str(exc)) from exc
 
         codes = [item.species_code for item in inference.probabilities]
         species_map = self.species_repository.list_by_codes(db, codes)
         predicted_species = species_map.get(inference.predicted_species_code)
         if predicted_species is None:
-            raise ModelNotReadyError("The predicted species is not registered in the species table.")
+            raise ModelNotReadyError(
+                "The predicted species is not registered in the species table."
+            )
 
-        serialized_probabilities = self._serialize_probabilities(inference.probabilities, species_map)
+        serialized_probabilities = self._serialize_probabilities(
+            inference.probabilities,
+            species_map,
+        )
         prediction = self.prediction_repository.create_prediction(
             db,
             original_filename=stored_upload.original_filename,
@@ -63,7 +83,7 @@ class PredictionService:
             predicted_species=predicted_species,
             confidence=inference.confidence,
             probabilities_json=json.dumps(serialized_probabilities),
-            model_version=active_model,
+            model_version=selected_model,
             inference_ms=inference.inference_ms,
         )
         db.commit()
@@ -85,8 +105,17 @@ class PredictionService:
             raise NotFoundError("Prediction not found.")
         return self._build_response(prediction)
 
-    def set_feedback(self, db: Session, prediction_id: int, body: PredictionFeedbackUpdate) -> PredictionResponse:
-        prediction = self.prediction_repository.update_feedback(db, prediction_id, body.user_feedback)
+    def set_feedback(
+        self,
+        db: Session,
+        prediction_id: int,
+        body: PredictionFeedbackUpdate,
+    ) -> PredictionResponse:
+        prediction = self.prediction_repository.update_feedback(
+            db,
+            prediction_id,
+            body.user_feedback,
+        )
         if prediction is None:
             raise NotFoundError("Prediction not found.")
         db.commit()
@@ -96,7 +125,7 @@ class PredictionService:
     def _serialize_probabilities(
         self,
         probabilities: list[InferenceProbability],
-        species_map: dict[str, object],
+        species_map: Mapping[str, object],
     ) -> list[dict[str, object]]:
         serialized = []
         for item in probabilities:

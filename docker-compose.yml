@@ -2,9 +2,12 @@ services:
   backend:
     build:
       context: ./backend
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
     volumes:
       - ./data:/app/data
       - ./artifacts:/app/artifacts
+      - huggingface_cache:/root/.cache/huggingface
 
   frontend:
     build:
@@ -14,3 +17,4 @@ services:
 
 volumes:
   frontend_node_modules:
+  huggingface_cache:

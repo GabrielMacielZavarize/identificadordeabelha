@@ -12,14 +12,23 @@ router = APIRouter(prefix="/predictions", tags=["predictions"])
 
 
 @router.post("", response_model=PredictionResponse, status_code=status.HTTP_201_CREATED)
-async def create_prediction(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def create_prediction(
+    file: UploadFile = File(...),
+    model_version: str | None = Query(default=None, min_length=1),
+    db: Session = Depends(get_db),
+):
     service = PredictionService()
     try:
-        return await service.create_prediction(db, file)
+        return await service.create_prediction(db, file, model_version=model_version)
     except InvalidRequestError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except NotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except ModelNotReadyError as exc:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        ) from exc
 
 
 @router.get("", response_model=list[PredictionResponse])

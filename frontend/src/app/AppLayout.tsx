@@ -18,19 +18,20 @@ export function AppLayout() {
         </div>
         <nav className="app-nav" aria-label="Navegação principal">
           <NavLink
-            to="/"
+            to="/app"
+            end
             className={({ isActive }) => (isActive ? 'nav-link nav-link-active' : 'nav-link')}
           >
             Classificar
           </NavLink>
           <NavLink
-            to="/history"
+            to="/app/history"
             className={({ isActive }) => (isActive ? 'nav-link nav-link-active' : 'nav-link')}
           >
             Histórico
           </NavLink>
           <NavLink
-            to="/species"
+            to="/app/species"
             className={({ isActive }) => (isActive ? 'nav-link nav-link-active' : 'nav-link')}
           >
             Espécies

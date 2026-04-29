@@ -9,8 +9,8 @@ import type { HistorySourceFilter, IdentificationHistoryPage } from '../types/ap
 const PAGE_SIZE = 10
 const FILTER_OPTIONS: Array<{ value: HistorySourceFilter; label: string }> = [
   { value: 'all', label: 'Todos' },
-  { value: 'specific', label: 'Nosso modelo' },
-  { value: 'openai', label: 'OpenAI' },
+  { value: 'specific', label: 'Modelos DINO' },
+  { value: 'openai', label: 'OpenAI CLIP global' },
 ]
 
 function normalizeFilter(value: string | null): HistorySourceFilter {

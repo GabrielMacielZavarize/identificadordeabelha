@@ -67,7 +67,7 @@ class HistoryService:
         return IdentificationHistoryItem(
             item_id=prediction.id,
             source="specific",
-            source_label="Nosso modelo",
+            source_label="Modelo treinado",
             image_url=f"{self.settings.uploads_mount_path}/{prediction.stored_path}",
             predicted_code=prediction.predicted_species.code,
             predicted_scientific_name=prediction.predicted_species.scientific_name,
