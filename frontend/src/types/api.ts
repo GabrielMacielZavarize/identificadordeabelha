@@ -15,6 +15,7 @@ export type ModelVersion = {
   classifier_type: string
   artifact_dir: string
   metrics_json: string
+  display_name: string | null
   is_active: boolean
   created_at: string
 }

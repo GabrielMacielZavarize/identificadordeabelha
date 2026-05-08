@@ -4,7 +4,7 @@ import './LandingPage.css'
 
 // ── Core SVG components ────────────────────────────────────────────────────────
 
-function BeeIcon({ size = 32, color = '#d4922e' }: { size?: number; color?: string }) {
+function BeeIcon({ size = 32, color = '#B8860B' }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
       <ellipse cx="16" cy="18" rx="8" ry="10" fill={color} opacity=".9" />
@@ -27,8 +27,8 @@ function HoneycombBg({ opacity = 0.06 }: { opacity?: number }) {
     >
       <defs>
         <pattern id="hex" x="0" y="0" width="56" height="64" patternUnits="userSpaceOnUse">
-          <polygon points="28,2 54,16 54,48 28,62 2,48 2,16" fill="none" stroke="#52a878" strokeWidth="1" />
-          <polygon points="28,34 54,48 54,80 28,94 2,80 2,48" fill="none" stroke="#52a878" strokeWidth="1" />
+          <polygon points="28,2 54,16 54,48 28,62 2,48 2,16" fill="none" stroke="#4A7C59" strokeWidth="1" />
+          <polygon points="28,34 54,48 54,80 28,94 2,80 2,48" fill="none" stroke="#4A7C59" strokeWidth="1" />
         </pattern>
       </defs>
       <rect width="100%" height="100%" fill="url(#hex)" />
@@ -39,7 +39,7 @@ function HoneycombBg({ opacity = 0.06 }: { opacity?: number }) {
 function Check() {
   return (
     <svg width="10" height="8" viewBox="0 0 10 8" fill="none" aria-hidden="true">
-      <path d="M1 4l3 3L9 1" stroke="#52a878" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M1 4l3 3L9 1" stroke="#4A7C59" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -92,7 +92,7 @@ const SPECIES_GROUPS = [
     model: 'DINOv2',
     label: 'Augochloropsis',
     sublabel: 'Classificador específico treinado com imagens do gênero',
-    color: '#52a878',
+    color: '#4A7C59',
     badge: 'Modelo específico',
     species: [
       { sci: 'Augochloropsis metallica', common: 'abelha verde metálica' },
@@ -103,7 +103,7 @@ const SPECIES_GROUPS = [
     model: 'CLIP',
     label: 'Identificação geral',
     sublabel: 'Modelo zero-shot para identificação de outras espécies',
-    color: '#f0ac44',
+    color: '#B8860B',
     badge: 'Modelo global',
     species: [
       { sci: 'Apis mellifera',      common: 'abelha-do-mel' },
@@ -175,8 +175,8 @@ export function LandingPage() {
             </h1>
 
             <p className="lp-hero-sub">
-              Sistema de visão computacional que usa <strong style={{ color: '#dff0e8' }}>DINOv2</strong> e{' '}
-              <strong style={{ color: '#dff0e8' }}>CLIP</strong> para classificar espécies de abelhas
+              Sistema de visão computacional que usa <strong style={{ color: '#E5E7EB' }}>DINOv2</strong> e{' '}
+              <strong style={{ color: '#E5E7EB' }}>CLIP</strong> para classificar espécies de abelhas
               a partir de fotografias, com score de confiança por classe.
             </p>
 
@@ -226,7 +226,7 @@ export function LandingPage() {
                 <div className="lp-mock-image-area">
                   <HoneycombBg opacity={0.1} />
                   <div className="lp-mock-bee-wrap">
-                    <BeeIcon size={72} color="#d4922e" />
+                    <BeeIcon size={72} color="#B8860B" />
                     <span className="lp-mock-bee-label">amostra analisada</span>
                   </div>
                 </div>
@@ -431,23 +431,23 @@ export function LandingPage() {
           <div className="lp-pipeline-grid lp-reveal">
             {[
               {
-                step: '01', title: 'Upload da imagem', color: '#3a7d58',
+                step: '01', title: 'Upload da imagem', color: '#2C4A6E',
                 desc: 'Foto da abelha enviada via interface web. A imagem trafega à API via multipart/form-data.',
               },
               {
-                step: '02', title: 'Pré-processamento', color: '#3a7d58',
+                step: '02', title: 'Pré-processamento', color: '#2C4A6E',
                 desc: 'Redimensionamento para 224×224 px, normalização com estatísticas ImageNet e conversão para tensor.',
               },
               {
-                step: '03', title: 'Extração de embeddings', color: '#52a878',
+                step: '03', title: 'Extração de embeddings', color: '#4A7C59',
                 desc: 'DINOv2 (ViT) extrai um vetor de features de alta dimensão capturando a estrutura visual da abelha.',
               },
               {
-                step: '04', title: 'Classificação', color: '#d4922e',
+                step: '04', title: 'Classificação', color: '#B8860B',
                 desc: 'Um MLP treinado nos embeddings mapeia o vetor para probabilidades por espécie via softmax.',
               },
               {
-                step: '05', title: 'Resultado com confiança', color: '#f0ac44',
+                step: '05', title: 'Resultado com confiança', color: '#B8860B',
                 desc: 'Retorna a espécie predita, o score de confiança e as probabilidades de todas as classes.',
               },
             ].map((item) => (
@@ -527,8 +527,9 @@ export function LandingPage() {
       <footer className="lp-footer">
         <div className="lp-footer-inner">
           <div className="lp-footer-brand">
-            <BeeIcon size={18} />
-            Projeto Integrador de IA
+            <img src="/logosolucoesmobile.png" alt="BeeAI" className="lp-footer-logo" />
+            <span className="lp-footer-brand-name">BeeAI</span>
+            <span>— Identificação inteligente de espécies</span>
           </div>
           <span className="lp-footer-tech">
             PyTorch · DINOv2 · CLIP · FastAPI · React · PostgreSQL · Docker

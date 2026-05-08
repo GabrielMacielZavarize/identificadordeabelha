@@ -42,6 +42,7 @@ class ModelVersion(Base):
     classifier_type: Mapped[str] = mapped_column(String(100), nullable=False)
     artifact_dir: Mapped[str] = mapped_column(String(500), nullable=False)
     metrics_json: Mapped[str] = mapped_column(Text, nullable=False)
+    display_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, nullable=False)
 

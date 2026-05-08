@@ -238,18 +238,24 @@ function GlobalContent({ identification }: { identification: GlobalIdentificatio
 function buildStoredProjectTabs(
   projectPredictions: Record<string, PredictionResponse>,
   listedVersions: Set<string>,
+  modelVersions: ModelVersion[],
 ): ProjectResultTab[] {
   return Object.entries(projectPredictions)
     .filter(([version]) => !listedVersions.has(version))
-    .map(([version, prediction]) => ({
-      id: createProjectModelId(version),
-      label: formatProjectModelLabel({
-        version,
-        encoder_name: prediction.model_version.encoder_name,
-        classifier_type: prediction.model_version.classifier_type,
-      }),
-      prediction,
-    }))
+    .map(([version, prediction]) => {
+      const knownModel = modelVersions.find((m) => m.version === version)
+      return {
+        id: createProjectModelId(version),
+        label: formatProjectModelLabel(
+          knownModel ?? {
+            version,
+            encoder_name: prediction.model_version.encoder_name,
+            classifier_type: prediction.model_version.classifier_type,
+          },
+        ),
+        prediction,
+      }
+    })
 }
 
 export function ResultPanel({ modelVersions }: { modelVersions: ModelVersion[] }) {
@@ -263,7 +269,7 @@ export function ResultPanel({ modelVersions }: { modelVersions: ModelVersion[] }
       label: formatProjectModelLabel(model),
       prediction: projectPredictions[model.version] ?? null,
     })),
-    ...buildStoredProjectTabs(projectPredictions, listedVersions),
+    ...buildStoredProjectTabs(projectPredictions, listedVersions, modelVersions),
   ]
   const latestProjectTab =
     latestProjectVersion && projectTabs.some((tab) => tab.id === createProjectModelId(latestProjectVersion))

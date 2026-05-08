@@ -7,6 +7,21 @@ import { formatProjectModelLabel } from '../features/predictions/PredictionWorkf
 import { api } from '../lib/http'
 import type { ModelVersion } from '../types/api'
 
+function modelBadge(model: ModelVersion): { label: string; className: string } {
+  const status = model.display_name?.match(/\(([^)]+)\)/)?.[1]
+  if (status) {
+    const className =
+      status === 'Depreciado' ? 'status-inactive' :
+      status === 'Novo' ? 'status-new' :
+      'status-active'
+    return { label: status, className }
+  }
+  return {
+    label: model.is_active ? 'Ativo' : 'Comparação',
+    className: model.is_active ? 'status-active' : 'status-inactive',
+  }
+}
+
 export function UploadPage() {
   const modelsQuery = useQuery({
     queryKey: ['models'],
@@ -29,8 +44,8 @@ export function UploadPage() {
           modelVersions.map((model) => (
             <aside className="model-box" aria-label={`Status de ${model.version}`} key={model.id}>
               <p className="model-label">Modelo DINO</p>
-              <span className={`status-badge ${model.is_active ? 'status-active' : 'status-inactive'}`}>
-                {model.is_active ? 'Ativo' : 'Comparação'}
+              <span className={`status-badge ${modelBadge(model).className}`}>
+                {modelBadge(model).label}
               </span>
               <strong>{formatProjectModelLabel(model)}</strong>
               <p className="model-helper">{model.encoder_name}</p>

@@ -37,8 +37,10 @@ export function getProjectModelVersion(modelId: ProjectModelId): string {
 }
 
 export function formatProjectModelLabel(
-  model: Pick<ModelVersion, 'version' | 'encoder_name' | 'classifier_type'>,
+  model: Pick<ModelVersion, 'version' | 'encoder_name' | 'classifier_type'> & { display_name?: string | null },
 ): string {
+  if (model.display_name) return model.display_name
+
   const encoderName = model.encoder_name.toLowerCase()
   const baseLabel = MODEL_LABELS.find(([needle]) => encoderName.includes(needle))?.[1]
   const classifier = model.classifier_type.toUpperCase()
@@ -51,6 +53,9 @@ export function formatProjectModelLabel(
 }
 
 export function formatProjectModelOptionLabel(model: ModelVersion): string {
+  if (model.display_name) {
+    return model.display_name
+  }
   const label = formatProjectModelLabel(model)
   return model.is_active ? `${label} (ativo)` : label
 }

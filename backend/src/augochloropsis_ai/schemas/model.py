@@ -14,5 +14,6 @@ class ModelVersionRead(BaseModel):
     classifier_type: str
     artifact_dir: str
     metrics_json: str
+    display_name: str | None
     is_active: bool
     created_at: datetime

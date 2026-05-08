@@ -5,14 +5,14 @@ export function AppLayout() {
     <div className="app-shell">
       <header className="app-header">
         <div className="brand-lockup">
-          <span className="brand-mark" aria-hidden="true">
-            <img src="/favicon.svg" alt="" />
+          <span className="brand-mark">
+            <img src="/logosolucoesmobile.png" alt="BeeAI" />
           </span>
           <div className="brand-copy">
             <p className="eyebrow">Projeto Integrador de IA</p>
-            <h1>Identificador de Abelhas</h1>
+            <h1>BeeAI</h1>
             <p className="app-subtitle">
-              Classificação assistida de espécies do gênero <em>Augochloropsis</em>.
+              Identificação inteligente de espécies de abelhas
             </p>
           </div>
         </div>
