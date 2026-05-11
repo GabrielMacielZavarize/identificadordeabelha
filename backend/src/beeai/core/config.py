@@ -31,15 +31,6 @@ class Settings(BaseSettings):
     def max_upload_size_bytes(self) -> int:
         return self.max_upload_size_mb * 1024 * 1024
 
-    # OCI Object Storage
-    oci_namespace: str = ""
-    oci_bucket_datasets: str = "beeai-datasets"
-    oci_bucket_artifacts: str = "beeai-artifacts"
-    oci_region: str = "sa-saopaulo-1"
-    oci_config_profile: str = "DEFAULT"
-    # True quando rodando dentro de uma VM OCI (usa Instance Principal, sem chaves)
-    oci_use_instance_principal: bool = False
-
     uploads_base_url: str = ""
 
     @property

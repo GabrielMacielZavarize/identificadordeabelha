@@ -79,7 +79,7 @@ Inicialização do backend no dia a dia:
 ```bash
 cd backend
 source ../.venv/bin/activate
-uvicorn augochloropsis_ai.api.main:app --reload --app-dir src
+uvicorn beeai.api.main:app --reload --app-dir src
 ```
 
 A API cria os diretórios de runtime e inicializa o SQLite automaticamente ao subir. Se quiser inicializar o banco manualmente:

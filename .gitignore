@@ -27,9 +27,10 @@ data/interim/embeddings/*
 data/interim/metadata/
 data/processed/
 
-# Artefatos de modelo
+# Artefatos de modelo (manter localmente em artifacts/Modelos Antigos/)
 artifacts/models/*
 !artifacts/models/README.md
+artifacts/Modelos Antigos/
 
 # Ambiente e segredos
 .env
@@ -47,4 +48,3 @@ docs/guia-mantenedor.local.md
 Thumbs.db
 
 PROMPT_CLAUDE_DESIGN_MOBILE.md
-guia-deploy-gratuito.md
