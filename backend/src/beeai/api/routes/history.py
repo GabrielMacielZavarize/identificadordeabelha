@@ -8,6 +8,7 @@ from beeai.schemas.history import HistorySourceFilter, IdentificationHistoryPage
 from beeai.services.history_service import HistoryService
 
 router = APIRouter(prefix="/history", tags=["history"])
+_service = HistoryService()
 
 
 @router.get("", response_model=IdentificationHistoryPage)
@@ -17,5 +18,4 @@ def list_identification_history(
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
 ):
-    service = HistoryService()
-    return service.list_history(db, source=source, limit=limit, offset=offset)
+    return _service.list_history(db, source=source, limit=limit, offset=offset)

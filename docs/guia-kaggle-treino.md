@@ -81,28 +81,101 @@ IMAGES_PER_SPECIES = 150                         # ← altere aqui
 
 | Parâmetro | Quando alterar | Exemplos |
 |---|---|---|
-| `MODEL_VERSION` | Sempre — cada treino precisa de um nome único | `dinov2_base_mlp_v001`, `dinov2_small_mlp_v002` |
+| `MODEL_VERSION` | Sempre — cada treino precisa de um nome único | `dinov2_base_mlp_v001`, `dinov3_vitl16_mlp_v001` |
 | `ENCODER_NAME` | Quando quiser testar um encoder diferente | ver tabela abaixo |
 | `IMAGES_PER_SPECIES` | Quando quiser mais dados ou treino mais rápido | 50 (demo), 150 (padrão), 300+ (produção) |
 
-> **Convenção de nome:** `{encoder}_{classificador}_{versao}` — ex: `dinov2_base_mlp_v002`
+> **Convenção de nome:** `{encoder}_{classificador}_{versao}` — ex: `dinov2_base_mlp_v002`, `dinov3_vitl16_mlp_v001`
 
 ---
 
-## DINOv2 no Kaggle
+## Encoders disponíveis no Kaggle
 
-O projeto usa encoders da família **DINOv2** da Meta AI, disponíveis publicamente no HuggingFace. Todos funcionam no Kaggle sem token.
+O pipeline suporta qualquer encoder compatível com `AutoModel` + `AutoImageProcessor` do HuggingFace Transformers. As famílias abaixo foram testadas ou verificadas como compatíveis.
 
-| Model ID no HuggingFace | Nome interno | VRAM usada | Qualidade |
+---
+
+### DINOv2 — Meta AI (público, sem token)
+
+Todos funcionam no Kaggle sem configuração adicional.
+
+| Model ID | Params | Dim | VRAM | Quando usar |
+|---|---|---|---|---|
+| `facebook/dinov2-small` | 22M | 384 | ~1 GB | Iterações rápidas, demos |
+| `facebook/dinov2-base` | 86M | 768 | ~2 GB | Boa qualidade com custo moderado |
+| `facebook/dinov2-large` | 300M | 1024 | ~5 GB | Alta qualidade — recomendado para producao |
+| `facebook/dinov2-giant` | 1B | 1536 | ~10 GB | Máxima qualidade DINOv2, cabe na T4 |
+| `facebook/dinov2-with-registers-small` | 22M | 384 | ~1 GB | Versão melhorada do small (register tokens) |
+| `facebook/dinov2-with-registers-base` | 86M | 768 | ~2 GB | Versão melhorada do base |
+| `facebook/dinov2-with-registers-large` | 300M | 1024 | ~5 GB | Melhor DINOv2 público disponível |
+| `facebook/dinov2-with-registers-giant` | 1B | 1536 | ~10 GB | Máximo DINOv2 com registers |
+
+> Os modelos `with-registers` usam register tokens (mesma técnica do DINOv3) e geralmente produzem features mais limpas. Preferir estes sobre as variantes sem registers.
+
+---
+
+### DINOv3 ViT — Meta AI (gated, requer HF_TOKEN)
+
+Requer aceitar os termos de licença na página do modelo no HuggingFace e autenticar com `HF_TOKEN`.
+
+| Model ID | Params | Dim | VRAM | Quando usar |
+|---|---|---|---|---|
+| `facebook/dinov3-vits16-pretrain-lvd1689m` | 21M | 384 | ~1 GB | DINOv3 mais leve, iterações rápidas |
+| `facebook/dinov3-vits16plus-pretrain-lvd1689m` | 29M | 384 | ~1 GB | ViT-S com SwiGLU (ligeiramente melhor) |
+| `facebook/dinov3-vitb16-pretrain-lvd1689m` | 86M | 768 | ~2 GB | Boa relação qualidade/velocidade |
+| `facebook/dinov3-vitl16-pretrain-lvd1689m` | 300M | 1024 | ~5 GB | Melhor opção DINOv3 para T4 |
+| `facebook/dinov3-vith16plus-pretrain-lvd1689m` | 840M | 1280 | ~8 GB | Alta qualidade — cabe na T4 |
+| `facebook/dinov3-vit7b16-pretrain-lvd1689m` | 6.7B | 4096 | >15 GB | Nao cabe na T4 — uso em A100/H100 |
+
+---
+
+### DINOv3 ConvNeXt — Meta AI (gated, requer HF_TOKEN)
+
+Arquitetura convolucional (não ViT). Compatível com AutoModel, mas **não usa class token** — o pipeline extrai `pooler_output` automaticamente se disponível, caso contrário aplica global average pooling.
+
+| Model ID | Params | VRAM | Quando usar |
 |---|---|---|---|
-| `facebook/dinov2-small` | DINOv2-S | ~1 GB | Boa — uso em demos e validação |
-| `facebook/dinov2-base` | DINOv2-B (DINOv3 no projeto) | ~2 GB | Melhor — uso em produção |
-| `facebook/dinov2-large` | DINOv2-L | ~5 GB | Excelente — treino mais lento |
-| `facebook/dinov2-giant` | DINOv2-G | ~10 GB | Máxima — ~14 GB VRAM, cabe na T4 |
+| `facebook/dinov3-convnext-tiny-pretrain-lvd1689m` | 28M | ~1 GB | CNN leve, alternativa ao ViT-S |
+| `facebook/dinov3-convnext-small-pretrain-lvd1689m` | 50M | ~2 GB | CNN intermediária |
+| `facebook/dinov3-convnext-base-pretrain-lvd1689m` | 88M | ~3 GB | CNN robusta |
+| `facebook/dinov3-convnext-large-pretrain-lvd1689m` | 198M | ~5 GB | Melhor CNN DINOv3 |
 
-> **Nota sobre "DINOv3":** o projeto internamente chama `facebook/dinov2-base` de "DINOv3" por ser a versão mais robusta em uso. Não há um modelo oficial chamado DINOv3 no HuggingFace — use os IDs da tabela acima.
+> **Atenção:** para usar os ConvNeXt é necessário verificar o formato de saída do modelo e ajustar a extração de embeddings no `embedder.py` se necessário.
 
-Para trocar o encoder, basta alterar `ENCODER_NAME` na Célula 2 e atualizar `MODEL_VERSION` com um nome que reflita o encoder usado.
+---
+
+### BioCLIP — Imageomics (público, MIT)
+
+Modelo CLIP treinado especificamente em 10 milhões de imagens biológicas do Tree of Life (450K+ taxa). **O mais adequado do ponto de vista biológico** para identificação de espécies de abelhas.
+
+| Model ID | Params | Dim | VRAM | Observações |
+|---|---|---|---|---|
+| `imageomics/bioclip` | 86M | 512 | ~2 GB | Público, MIT — treinado em Tree of Life 10M |
+
+O BioCLIP é suportado nativamente pelo pipeline via `BioCLIPEmbedder`. Para usá-lo, instale a dependência extra antes de executar o pipeline:
+
+```bash
+pip install open_clip_torch
+# ou, dentro do ambiente do projeto:
+pip install "beeai[bioclip]"
+```
+
+No Kaggle, adicione uma célula antes da Célula 9:
+
+```python
+!pip install open_clip_torch -q
+```
+
+Depois basta definir na Célula 2:
+
+```python
+ENCODER_NAME = "imageomics/bioclip"
+MODEL_VERSION = "bioclip_mlp_v001"
+```
+
+---
+
+Para trocar o encoder, altere `ENCODER_NAME` na Célula 2 e atualize `MODEL_VERSION` com um nome que reflita o encoder usado.
 
 ---
 

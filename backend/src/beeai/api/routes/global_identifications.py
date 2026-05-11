@@ -14,6 +14,7 @@ from beeai.schemas.global_identification import (
 from beeai.services.global_identification_service import GlobalIdentificationService
 
 router = APIRouter(prefix="/global-identifications", tags=["global-identifications"])
+_service = GlobalIdentificationService()
 
 
 @router.post("", response_model=GlobalIdentificationResponse, status_code=status.HTTP_201_CREATED)
@@ -21,9 +22,8 @@ async def create_global_identification(
     file: Annotated[UploadFile, File(...)],
     db: Session = Depends(get_db),
 ):
-    service = GlobalIdentificationService()
     try:
-        return await service.identify(db, file)
+        return await _service.identify(db, file)
     except InvalidRequestError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
@@ -34,8 +34,7 @@ def list_global_identifications(
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
 ):
-    service = GlobalIdentificationService()
-    return service.list_global_identifications(db, limit=limit, offset=offset)
+    return _service.list_global_identifications(db, limit=limit, offset=offset)
 
 
 @router.patch("/{identification_id}/feedback", response_model=GlobalIdentificationResponse)
@@ -44,8 +43,7 @@ async def set_global_identification_feedback(
     body: GlobalIdentificationFeedbackUpdate,
     db: Session = Depends(get_db),
 ):
-    service = GlobalIdentificationService()
     try:
-        return service.set_feedback(db, identification_id, body)
+        return _service.set_feedback(db, identification_id, body)
     except NotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc

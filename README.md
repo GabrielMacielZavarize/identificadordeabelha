@@ -160,9 +160,9 @@ python scripts/run_training_pipeline.py \
   --raw-catalog ../data/raw/metadata/raw_catalog.csv \
   --clean-catalog ../data/interim/metadata/clean_catalog.csv \
   --split-manifest ../data/processed/metadata/split_manifest.csv \
-  --embeddings-dir ../data/interim/embeddings/dinov3_vits16_mlp_test_v001 \
-  --encoder-name facebook/dinov3-vits16-pretrain-lvd1689m \
-  --version dinov3_vits16_mlp_test_v001
+  --embeddings-dir ../data/interim/embeddings/dinov3_vitl16_mlp_test_v001 \
+  --encoder-name facebook/dinov3-vitl16-pretrain-lvd1689m \
+  --version dinov3_vitl16_mlp_test_v001
 ```
 
 O DINOv3 requer `transformers>=4.56`. A primeira execução baixa os pesos do Hugging Face, então precisa de internet, acesso concedido ao repositório gated da Meta e pode demorar.

@@ -29,6 +29,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+bioclip = [
+  "open_clip_torch>=2.24,<3.0",
+]
 dev = [
   "httpx>=0.27,<1.0",
   "mypy>=1.11,<2.0",

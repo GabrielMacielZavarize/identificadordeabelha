@@ -9,6 +9,7 @@ from beeai.schemas.prediction import PredictionFeedbackUpdate, PredictionRespons
 from beeai.services.prediction_service import PredictionService
 
 router = APIRouter(prefix="/predictions", tags=["predictions"])
+_service = PredictionService()
 
 
 @router.post("", response_model=PredictionResponse, status_code=status.HTTP_201_CREATED)
@@ -17,9 +18,8 @@ async def create_prediction(
     model_version: str | None = Query(default=None, min_length=1),
     db: Session = Depends(get_db),
 ):
-    service = PredictionService()
     try:
-        return await service.create_prediction(db, file, model_version=model_version)
+        return await _service.create_prediction(db, file, model_version=model_version)
     except InvalidRequestError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except NotFoundError as exc:
@@ -37,15 +37,13 @@ def list_predictions(
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
 ):
-    service = PredictionService()
-    return service.list_predictions(db, limit=limit, offset=offset)
+    return _service.list_predictions(db, limit=limit, offset=offset)
 
 
 @router.get("/{prediction_id}", response_model=PredictionResponse)
 def get_prediction(prediction_id: int, db: Session = Depends(get_db)):
-    service = PredictionService()
     try:
-        return service.get_prediction(db, prediction_id)
+        return _service.get_prediction(db, prediction_id)
     except NotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
@@ -56,8 +54,7 @@ def set_prediction_feedback(
     body: PredictionFeedbackUpdate,
     db: Session = Depends(get_db),
 ):
-    service = PredictionService()
     try:
-        return service.set_feedback(db, prediction_id, body)
+        return _service.set_feedback(db, prediction_id, body)
     except NotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
