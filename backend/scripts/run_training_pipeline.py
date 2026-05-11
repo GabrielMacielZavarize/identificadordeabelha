@@ -4,15 +4,15 @@ import argparse
 import json
 from pathlib import Path
 
-from augochloropsis_ai.core.config import get_settings
-from augochloropsis_ai.db.session import get_session_factory, init_db
-from augochloropsis_ai.repositories.model_repository import ModelRepository
-from augochloropsis_ai.training.build_manifest import build_clean_manifest
-from augochloropsis_ai.training.evaluate_model import evaluate_classifier
-from augochloropsis_ai.training.extract_embeddings import extract_embeddings
-from augochloropsis_ai.training.package_model import package_model
-from augochloropsis_ai.training.split_dataset import split_dataset
-from augochloropsis_ai.training.train_mlp import train_classifier
+from beeai.core.config import get_settings
+from beeai.db.session import get_session_factory, init_db
+from beeai.repositories.model_repository import ModelRepository
+from beeai.training.build_manifest import build_clean_manifest
+from beeai.training.evaluate_model import evaluate_classifier
+from beeai.training.extract_embeddings import extract_embeddings
+from beeai.training.package_model import package_model
+from beeai.training.split_dataset import split_dataset
+from beeai.training.train_mlp import train_classifier
 
 
 def run_pipeline(

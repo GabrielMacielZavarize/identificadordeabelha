@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from augochloropsis_ai.db.models import ModelVersion, Species
-from augochloropsis_ai.ml.inference_pipeline import InferenceProbability, InferenceResult
+from beeai.db.models import ModelVersion, Species
+from beeai.ml.inference_pipeline import InferenceProbability, InferenceResult
 
 PNG_BYTES = (
     b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01"
@@ -70,7 +70,7 @@ def test_prediction_creation_flow(test_client, db_session, monkeypatch):
         )
 
     monkeypatch.setattr(
-        "augochloropsis_ai.ml.inference_pipeline.InferencePipeline.predict_bytes",
+        "beeai.ml.inference_pipeline.InferencePipeline.predict_bytes",
         fake_predict_bytes,
     )
 
@@ -113,7 +113,7 @@ def test_prediction_can_use_requested_model_version(test_client, db_session, mon
         )
 
     monkeypatch.setattr(
-        "augochloropsis_ai.ml.inference_pipeline.InferencePipeline.predict_bytes",
+        "beeai.ml.inference_pipeline.InferencePipeline.predict_bytes",
         fake_predict_bytes,
     )
 
@@ -143,7 +143,7 @@ def test_prediction_returns_503_when_encoder_requires_access(test_client, db_ses
         raise RuntimeError("This encoder requires Hugging Face access.")
 
     monkeypatch.setattr(
-        "augochloropsis_ai.ml.inference_pipeline.InferencePipeline.predict_bytes",
+        "beeai.ml.inference_pipeline.InferencePipeline.predict_bytes",
         fake_predict_bytes,
     )
 

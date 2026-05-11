@@ -1,12 +1,12 @@
 services:
   backend:
-    command: uvicorn augochloropsis_ai.api.main:app --host 0.0.0.0 --port 8000 --reload --app-dir src
+    command: uvicorn beeai.api.main:app --host 0.0.0.0 --port 8000 --reload --app-dir src
     environment:
-      AUGOCHLOROPSIS_AI_DEBUG: "true"
-      AUGOCHLOROPSIS_AI_DATABASE_URL: sqlite:////app/data/db/app.sqlite3
-      AUGOCHLOROPSIS_AI_UPLOAD_DIR: /app/data/uploads
-      AUGOCHLOROPSIS_AI_ARTIFACTS_DIR: /app/artifacts/models
-      AUGOCHLOROPSIS_AI_CORS_ORIGINS: '["http://localhost:5173"]'
+      BEEAI_DEBUG: "true"
+      BEEAI_DATABASE_URL: sqlite:////app/data/db/app.sqlite3
+      BEEAI_UPLOAD_DIR: /app/data/uploads
+      BEEAI_ARTIFACTS_DIR: /app/artifacts/models
+      BEEAI_CORS_ORIGINS: '["http://localhost:5173"]'
     ports:
       - "8001:8000"
     volumes:

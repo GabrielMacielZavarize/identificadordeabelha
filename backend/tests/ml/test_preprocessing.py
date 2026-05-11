@@ -4,7 +4,7 @@ from io import BytesIO
 
 from PIL import Image
 
-from augochloropsis_ai.ml.preprocessing import load_pil_image_from_bytes
+from beeai.ml.preprocessing import load_pil_image_from_bytes
 
 
 def test_load_pil_image_from_bytes_converts_to_rgb():

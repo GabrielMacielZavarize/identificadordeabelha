@@ -12,8 +12,8 @@ SRC_ROOT = BACKEND_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from augochloropsis_ai.core.config import get_settings
-from augochloropsis_ai.db.models import Base
+from beeai.core.config import get_settings
+from beeai.db.models import Base
 
 config = context.config
 if config.config_file_name is not None:

@@ -15,7 +15,7 @@ from urllib.request import Request, urlopen
 from PIL import Image, UnidentifiedImageError
 
 GBIF_OCCURRENCE_SEARCH_URL = "https://api.gbif.org/v1/occurrence/search"
-USER_AGENT = "augochloropsis-ai-demo/0.1"
+USER_AGENT = "beeai-demo/0.1"
 DEFAULT_SPECIES = (
     "Augochloropsis metallica",
     "Augochloropsis callichroa",

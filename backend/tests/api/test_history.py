@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from augochloropsis_ai.db.models import ModelVersion, Species
-from augochloropsis_ai.ml.global_identifier import (
+from beeai.db.models import ModelVersion, Species
+from beeai.ml.global_identifier import (
     GlobalIdentificationProbability,
     GlobalIdentificationResult,
 )
-from augochloropsis_ai.ml.inference_pipeline import InferenceProbability, InferenceResult
+from beeai.ml.inference_pipeline import InferenceProbability, InferenceResult
 
 PNG_BYTES = (
     b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
@@ -64,11 +64,11 @@ def test_history_lists_specific_and_openai_records(test_client, db_session, monk
         )
 
     monkeypatch.setattr(
-        "augochloropsis_ai.ml.inference_pipeline.InferencePipeline.predict_bytes",
+        "beeai.ml.inference_pipeline.InferencePipeline.predict_bytes",
         fake_predict_bytes,
     )
     monkeypatch.setattr(
-        "augochloropsis_ai.services.global_identification_service.get_global_identifier",
+        "beeai.services.global_identification_service.get_global_identifier",
         lambda: FakeGlobalIdentifier(),
     )
 
@@ -114,7 +114,7 @@ def test_history_paginates_records(test_client, db_session, monkeypatch):
         )
 
     monkeypatch.setattr(
-        "augochloropsis_ai.ml.inference_pipeline.InferencePipeline.predict_bytes",
+        "beeai.ml.inference_pipeline.InferencePipeline.predict_bytes",
         fake_predict_bytes,
     )
 

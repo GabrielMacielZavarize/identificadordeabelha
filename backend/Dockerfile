@@ -20,4 +20,4 @@ RUN pip install --no-cache-dir --no-deps -e .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "augochloropsis_ai.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--app-dir", "src"]
+CMD ["uvicorn", "beeai.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--app-dir", "src"]

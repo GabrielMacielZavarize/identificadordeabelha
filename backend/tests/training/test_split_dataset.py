@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from augochloropsis_ai.training.split_dataset import assign_split_labels
+from beeai.training.split_dataset import assign_split_labels
 
 
 def test_assign_split_labels_keeps_specimens_together():

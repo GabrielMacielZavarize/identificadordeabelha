@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from augochloropsis_ai.core.config import get_settings
-from augochloropsis_ai.db.session import init_db
+from beeai.core.config import get_settings
+from beeai.db.session import init_db
 
 
 def main() -> None:

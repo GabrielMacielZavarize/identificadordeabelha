@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from augochloropsis_ai.core.config import Settings
-from augochloropsis_ai.ml.artifact_loader import ArtifactLoader
+from beeai.core.config import Settings
+from beeai.ml.artifact_loader import ArtifactLoader
 
 
 def test_resolves_legacy_absolute_artifact_path_from_configured_artifacts_dir(tmp_path):

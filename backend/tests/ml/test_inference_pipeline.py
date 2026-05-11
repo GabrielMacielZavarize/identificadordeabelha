@@ -4,8 +4,8 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from augochloropsis_ai.ml.artifact_loader import LoadedArtifacts
-from augochloropsis_ai.ml.inference_pipeline import InferencePipeline
+from beeai.ml.artifact_loader import LoadedArtifacts
+from beeai.ml.inference_pipeline import InferencePipeline
 
 
 def test_inference_pipeline_orders_probabilities(monkeypatch):
@@ -26,11 +26,11 @@ def test_inference_pipeline_orders_probabilities(monkeypatch):
             return np.asarray([0.1, 0.2, 0.3], dtype=np.float32)
 
     monkeypatch.setattr(
-        "augochloropsis_ai.ml.inference_pipeline.get_embedder",
+        "beeai.ml.inference_pipeline.get_embedder",
         lambda _model_name: FakeEmbedder(),
     )
     monkeypatch.setattr(
-        "augochloropsis_ai.ml.inference_pipeline.predict_probabilities",
+        "beeai.ml.inference_pipeline.predict_probabilities",
         lambda _classifier, _embedding: np.asarray([0.2, 0.8], dtype=np.float32),
     )
 

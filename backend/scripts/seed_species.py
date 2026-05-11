@@ -4,9 +4,9 @@ import argparse
 import csv
 from pathlib import Path
 
-from augochloropsis_ai.db.session import get_session_factory, init_db
-from augochloropsis_ai.core.config import get_settings
-from augochloropsis_ai.repositories.species_repository import SpeciesRepository
+from beeai.db.session import get_session_factory, init_db
+from beeai.core.config import get_settings
+from beeai.repositories.species_repository import SpeciesRepository
 
 
 def seed_species(csv_path: Path) -> None:
