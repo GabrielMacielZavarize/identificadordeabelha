@@ -21,6 +21,15 @@ class Settings(BaseSettings):
     allowed_image_extensions: tuple[str, ...] = (".jpg", ".jpeg", ".png")
     allowed_mime_types: tuple[str, ...] = ("image/jpeg", "image/png")
 
+    # Supabase
+    supabase_url: str = ""
+    supabase_anon_key: str = ""
+    supabase_jwt_secret: str = ""
+
+    # Hugging Face
+    hf_token: str = ""
+    hf_model_repo: str = ""
+
     model_config = SettingsConfigDict(
         env_prefix="BEEAI_",
         env_file=REPO_ROOT / ".env",

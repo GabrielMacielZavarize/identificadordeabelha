@@ -1,6 +1,15 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useAuth } from '../features/auth/AuthContext'
 
 export function AppLayout() {
+  const { user, signOut } = useAuth()
+  const navigate = useNavigate()
+
+  async function handleSignOut() {
+    await signOut()
+    navigate('/login')
+  }
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -36,6 +45,12 @@ export function AppLayout() {
           >
             Espécies
           </NavLink>
+          <div className="nav-user">
+            <span className="nav-email">{user?.email}</span>
+            <button className="btn-ghost" onClick={handleSignOut}>
+              Sair
+            </button>
+          </div>
         </nav>
       </header>
       <main className="page-container">
