@@ -22,6 +22,74 @@ Monorepo acadêmico para classificação de espécies do gênero *Augochloropsis
 - `docs/`: requisitos, arquitetura, metodologia, experimentos e resultados.
 - `notebooks/`: análise exploratória e análise de erros.
 
+## Deploy em produção
+
+### URLs
+
+| Serviço | URL |
+|---|---|
+| Frontend | https://beeai-five.vercel.app |
+| Backend | https://macciell01-beeai-backend.hf.space |
+| Banco | Supabase PostgreSQL (`rgbbhpcxuiwghaltrtjm`) |
+
+### Frontend — Vercel (automático)
+
+O Vercel está conectado ao repositório GitHub. Basta fazer push para a branch `main`:
+
+```bash
+git add .
+git commit -m "sua mensagem"
+git push origin main
+```
+
+O Vercel detecta a alteração e publica automaticamente.
+
+### Backend — HF Spaces
+
+```bash
+./deploy-backend.sh
+```
+
+O script empacota `backend/`, commita e faz push para o Space. Leva cerca de 1 minuto. O Space reinicia e baixa os artefatos de modelo do HF model repo automaticamente.
+
+### Banco — Supabase PostgreSQL
+
+Novas migrations Alembic devem ser rodadas localmente (elas se aplicam direto no banco de produção):
+
+```bash
+cd backend
+source .venv/bin/activate
+alembic upgrade head
+```
+
+### Variáveis de ambiente
+
+**Frontend** (`frontend/.env.local` para desenvolvimento local):
+
+| Variável | Descrição |
+|---|---|
+| `VITE_SUPABASE_URL` | URL do projeto Supabase |
+| `VITE_SUPABASE_ANON_KEY` | Chave anon pública |
+| `VITE_API_BASE_URL` | URL do backend (vazio = usa proxy local) |
+
+**Backend** (`.env` local / secrets no HF Spaces):
+
+| Variável | Descrição |
+|---|---|
+| `BEEAI_DATABASE_URL` | Connection string PostgreSQL (pooler do Supabase em produção) |
+| `BEEAI_SUPABASE_URL` | URL do projeto Supabase |
+| `BEEAI_SUPABASE_ANON_KEY` | Chave anon pública |
+| `BEEAI_SUPABASE_JWT_SECRET` | JWT secret para validar tokens |
+| `HF_TOKEN` | Token de leitura do Hugging Face |
+| `BEEAI_ARTIFACTS_DIR` | Caminho dos artefatos de modelo |
+| `BEEAI_UPLOAD_DIR` | Caminho para uploads de imagens |
+| `BEEAI_CORS_ORIGINS` | Lista de origens permitidas (JSON) |
+
+> Em produção, usar sempre o **Session Pooler** do Supabase:
+> `postgresql://postgres.PROJECT_REF:SENHA@aws-1-sa-east-1.pooler.supabase.com:5432/postgres`
+
+---
+
 ## Rodando com Docker
 
 Use Docker quando quiser iniciar backend e frontend juntos, sem manter dois terminais configurados manualmente.

@@ -30,15 +30,20 @@ def run_pipeline(
     split_dataset(clean_catalog, split_manifest, processed_root)
     embedding_files = extract_embeddings(split_manifest, embeddings_dir, model_name=encoder_name)
 
+    # Datasets pequenos podem não ter val/test — usa o treino como fallback
+    train_path = embedding_files["train"]
+    val_path   = embedding_files.get("val",  train_path)
+    test_path  = embedding_files.get("test", train_path)
+
     run_dir = artifacts_root / "_runs" / version
     training_artifacts = train_classifier(
-        train_embeddings_path=embedding_files["train"],
-        val_embeddings_path=embedding_files["val"],
+        train_embeddings_path=train_path,
+        val_embeddings_path=val_path,
         output_dir=run_dir,
         version=version,
         encoder_name=encoder_name,
     )
-    metrics = evaluate_classifier(training_artifacts.output_dir, embedding_files["test"])
+    metrics = evaluate_classifier(training_artifacts.output_dir, test_path)
     packaged_dir = package_model(run_dir, artifacts_root / version)
 
     settings = get_settings()
